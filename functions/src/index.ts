@@ -65,7 +65,10 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
   functions.logger.info("handelIncomingMessage", { structuredData: true });
   // console.log(request.body);
   let responseMessage = "Default Message";
-  const incomingBody = request.body.Body;
+  const incomingBody: string = request.body.Body;
+
+  // Add my phone number for testing purposes and existing user
+  const addMe = await createNewUser(removePlusFromPhoneNumber(env.twilio.mynumber), ['n123544867', 'n190128', 'n134785634']);
   
   // Remove '+' from front and add 'n'
   const incomingPhoneNumber: string = await removePlusFromPhoneNumber(request.body.From);
@@ -76,7 +79,14 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
   if (isNewUser) {
     responseMessage = `Welcome to the Accountability Bot!\nTo see a list of commands, text "bot help"`;
   } else {
-    responseMessage = `Welcome back!  ${incomingBody}`;
+    responseMessage = `Welcome back!\nbody: ${incomingBody}`;
+  }
+
+  // Handle Commands
+  if (incomingBody.includes("help")) {
+    responseMessage = await helpCommand();
+  } else if (incomingBody.includes("list") && incomingBody.includes("contact")) {
+    responseMessage = await listContactsCommand(incomingPhoneNumber);
   }
 
   // Respond to message
@@ -92,6 +102,32 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
   response.status(200).send(twiml.toString());
 });
 
+
+
+// ---------------------
+//   Command Functions
+// ---------------------
+const helpCommand = (): string => {
+  return `---Commands---
+'bot help' -  this help list
+'report <number>' -  how did you do since your last report? (number 1-10)
+'list contacts' -  list your accountable contacts
+'add contact <phone number>' -  add a contact
+'remove contact <phone number>' -  remove a contact`;
+};
+
+const listContactsCommand = async (incomingPhoneNumber: string): Promise<string> => {
+  let contactString = "Here is your contacts:";
+  // Create a reference to the cities collection
+  const userDocument: admin.firestore.DocumentSnapshot = await db.collection('users').doc(incomingPhoneNumber).get();
+  const contactList = await userDocument.get('contacts');
+  await contactList.forEach((contactNumber: string) => {
+    contactString += `\n${contactNumber.substring(2)}`;
+  });
+  console.log({contactList});
+  // console.log('contactString: ', contactString);
+  return contactString;
+}
 
 // ---------------------
 //   Utility Functions
@@ -119,12 +155,12 @@ const checkIfNewUser = async (incomingPhoneNumber: string): Promise<boolean> => 
   return isNewUser;
 };
 
-const createNewUser = async (incomingPhoneNumber: string): Promise<admin.firestore.WriteResult> => {
+const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string> = [], history: Array<string> = []): Promise<admin.firestore.WriteResult> => {
   const newUserResults: admin.firestore.WriteResult = await db.collection('users').doc(incomingPhoneNumber).set({
     phoneNumber: incomingPhoneNumber,
     dateCreated: "2020-10-03",
-    contacts: [],
-    history: [],
+    contacts: contacts,
+    history: history,
     submittedToday: "false",
     smsDailyTime: "07:00"
   });
