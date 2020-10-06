@@ -10,3 +10,13 @@ typings/
 
 # Node.js dependency directory
 node_modules/
+
+# dotenv environment variables file
+.env
+.env.test
+env.js
+env.ts
+.env.js
+.env.ts
+env.json
+.runtimeconfig.json
