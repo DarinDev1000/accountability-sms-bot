@@ -69,7 +69,7 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
   console.log({incomingBody});
   
   // Remove '+' from front and add 'n'
-  const incomingPhoneNumber: string = await removePlusFromPhoneNumber(request.body.From);
+  const incomingPhoneNumber: string = await replacePlusFromPhoneNumber(request.body.From);
   console.log("From: ", incomingPhoneNumber);
   
   // Check if new user
@@ -186,7 +186,7 @@ const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string
   return newUserResults;
 };
 
-const removePlusFromPhoneNumber = (phoneNumber: string): string => {
+const replacePlusFromPhoneNumber = (phoneNumber: string): string => {
   return "n" + phoneNumber.substring(1);
 };
 const addPlusToPhoneNumber = (phoneNumber: string): string => {
@@ -204,53 +204,5 @@ const parseNumberFromBodyWithoutCountry = (incomingBody: string): string => {
   return '';
 };
 
-// ---------------------
-//   Temporary 'Database'
-// ---------------------
-const users = {
-  "n12093419681": {
-    history: [
-      {
-        date: '2020-05-11',
-        rating: '7'
-      },
-      {
-        date: '2020-05-12',
-        rating: '5'
-      },
-      {
-        date: '2020-05-13',
-        rating: '8'
-      }
-    ],
-    contacts: [
-      "n1234567890",
-      "n1234567890",
-      "n1234567890"
-    ]
-  },
-  "n389467259w3": {
-    history: [
-      {
-        date: '2020-05-11',
-        rating: '7'
-      },
-      {
-        date: '2020-05-12',
-        rating: '5'
-      },
-      {
-        date: '2020-05-13',
-        rating: '8'
-      }
-    ],
-    contacts: [
-      "n1234567890",
-      "n1234567890",
-      "n1234567890"
-    ]
-  }
-};
-
 // Add my phone number for testing purposes and existing user
-const addMe = createNewUser(removePlusFromPhoneNumber(env.twilio.mynumber), ['n123544867', 'n190128', 'n134785634']);
+const addMe = createNewUser(replacePlusFromPhoneNumber(env.twilio.mynumber), ['n123544867', 'n190128', 'n134785634']);
