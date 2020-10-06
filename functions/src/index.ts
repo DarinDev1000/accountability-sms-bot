@@ -29,7 +29,7 @@ export const twilioTrial = functions.https.onRequest((request, response) => {
     .create({
       body: "Hello from Node",
       to: env.twilio.mynumber, // Text this number
-      from: env.twilio.twilionumber, // From a valid Twilio number
+      from: env.twilio.twilionumber // From a valid Twilio number
     })
     .then((message: any) => console.log(message.sid));
   
@@ -113,21 +113,20 @@ const checkIfNewUser = async (incomingPhoneNumber: string) => {
   return isNewUser;
 };
 
-const createNewUser = (incomingPhoneNumber: string) => {
-  const newUser = db.collection('users').doc(incomingPhoneNumber);
-  newUser.set({
+const createNewUser = (incomingPhoneNumber: string): void => {
+  const newUser: admin.firestore.DocumentData = db.collection('users').doc(incomingPhoneNumber).set({
     phoneNumber: incomingPhoneNumber,
     dateCreated: '2020-10-03',
     contacts: [],
     history: []
   });
-  console.log('created user: ', incomingPhoneNumber);
+  console.log('created user: ', incomingPhoneNumber, newUser);
 };
 
-const removePlusFromPhoneNumber = (phoneNumber: string) => {
+const removePlusFromPhoneNumber = (phoneNumber: string): string => {
   return "n" + phoneNumber.substring(1);
 };
-const addPlusToPhoneNumber = (phoneNumber: string) => {
+const addPlusToPhoneNumber = (phoneNumber: string): string => {
   return "+" + phoneNumber.substring(1);
 };
 
