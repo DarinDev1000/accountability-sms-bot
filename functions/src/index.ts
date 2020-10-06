@@ -13,53 +13,54 @@ const db = admin.firestore();
 // // https://firebase.google.com/docs/functions/typescript
 //
 
-export const helloWorld = functions.https.onRequest((request, response) => {
-  functions.logger.info("Hello logs!", {structuredData: true});
-  response.send("Hello from Firebase!");
-});
 
-export const twilioTrial = functions.https.onRequest((request, response) => {
-  functions.logger.info("twilioTrial", { structuredData: true });
+// export const helloWorld = functions.https.onRequest((request, response) => {
+//   functions.logger.info("Hello logs!", {structuredData: true});
+//   response.send("Hello from Firebase!");
+// });
 
-  const accountSid = env.twilio.accountsid; // Your Account SID from www.twilio.com/console
-  const authToken = env.twilio.authtoken; // Your Auth Token from www.twilio.com/console
+// export const twilioTrial = functions.https.onRequest((request, response) => {
+//   functions.logger.info("twilioTrial", { structuredData: true });
 
-  const client = new twilio(accountSid, authToken);
+//   const accountSid = env.twilio.accountsid; // Your Account SID from www.twilio.com/console
+//   const authToken = env.twilio.authtoken; // Your Auth Token from www.twilio.com/console
 
-  client.messages
-    .create({
-      body: "Hello from Node",
-      to: env.twilio.mynumber, // Text this number
-      from: env.twilio.twilionumber // From a valid Twilio number
-    })
-    .then((message: any) => console.log(message.sid));
+//   const client = new twilio(accountSid, authToken);
+
+//   client.messages
+//     .create({
+//       body: "Hello from Node",
+//       to: env.twilio.mynumber, // Text this number
+//       from: env.twilio.twilionumber // From a valid Twilio number
+//     })
+//     .then((message: any) => console.log(message.sid));
   
-  response.send("Sent");
-});
+//   response.send("Sent");
+// });
 
-export const twilioReceiveAndSend = functions.https.onRequest((request, response) => {
-  functions.logger.info("twilioReceiveAndSend", { structuredData: true });
+// export const twilioReceiveAndSend = functions.https.onRequest((request, response) => {
+//   functions.logger.info("twilioReceiveAndSend", { structuredData: true });
 
-  console.log('body: ', request.body.Body);
+//   console.log('body: ', request.body.Body);
   
-  const twiml = new MessagingResponse();
-  if (request.body.Body) {
-    twiml.message(request.body.Body);
-  } else {
-    response.status(400).end();
-    throw console.error('no body received');
-  }
+//   const twiml = new MessagingResponse();
+//   if (request.body.Body) {
+//     twiml.message(request.body.Body);
+//   } else {
+//     response.status(400).end();
+//     throw console.error('no body received');
+//   }
   
-  console.log('response: ', twiml.toString());
-  response.set({ "Content-Type": "text/xml" });
-  response.status(200).send(twiml.toString());
-});
+//   console.log('response: ', twiml.toString());
+//   response.set({ "Content-Type": "text/xml" });
+//   response.status(200).send(twiml.toString());
+// });
 
-export const logRequest = functions.https.onRequest((request, response) => {
-  functions.logger.info("logRequest", { structuredData: true });
-  console.log(request.body);
-  response.send("logging");
-});
+// export const logRequest = functions.https.onRequest((request, response) => {
+//   functions.logger.info("logRequest", { structuredData: true });
+//   console.log(request.body);
+//   response.send("logging");
+// });
 
 export const handelIncomingMessage = functions.https.onRequest(async (request, response) => {
   functions.logger.info("handelIncomingMessage", { structuredData: true });
