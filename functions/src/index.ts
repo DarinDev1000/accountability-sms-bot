@@ -66,9 +66,7 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
   // console.log(request.body);
   let responseMessage = "Default Message";
   const incomingBody: string = request.body.Body;
-
-  // Add my phone number for testing purposes and existing user
-  const addMe = await createNewUser(removePlusFromPhoneNumber(env.twilio.mynumber), ['n123544867', 'n190128', 'n134785634']);
+  console.log({incomingBody});
   
   // Remove '+' from front and add 'n'
   const incomingPhoneNumber: string = await removePlusFromPhoneNumber(request.body.From);
@@ -87,6 +85,8 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
     responseMessage = await helpCommand();
   } else if (incomingBody.includes("list") && incomingBody.includes("contact")) {
     responseMessage = await listContactsCommand(incomingPhoneNumber);
+  } else if (incomingBody.includes("add") && incomingBody.includes("contact")) {
+    responseMessage = await addContactCommand(incomingPhoneNumber, incomingBody);
   }
 
   // Respond to message
@@ -127,6 +127,24 @@ const listContactsCommand = async (incomingPhoneNumber: string): Promise<string>
   console.log({contactList});
   // console.log('contactString: ', contactString);
   return contactString;
+}
+
+const addContactCommand = async (incomingPhoneNumber: string, incomingBody: string): Promise<string> => {
+  const contactNumberToAdd = await parseNumberFromBodyWithoutCountry(incomingBody);
+  console.log({contactNumberToAdd});
+  if (contactNumberToAdd.length <= 2) {
+    return 'Did not find a number to add.\nAdd a number in this format:\n"add contact 1234567890"'
+  }
+  // Create a reference to the cities collection
+  const userDocumentRef: admin.firestore.DocumentReference = await db.collection('users').doc(incomingPhoneNumber);
+  const contactList: Array<string> = await (await userDocumentRef.get()).get('contacts');
+  if (contactList.includes(contactNumberToAdd)) {
+    return `${contactNumberToAdd.substring(1)} is already in your contact list`;
+  }
+  await contactList.push(contactNumberToAdd);
+  const updateResponse = await userDocumentRef.update('contacts', contactList);
+  console.log({contactList})
+  return `Added ${contactNumberToAdd.substring(1)} to your contact list`;
 }
 
 // ---------------------
@@ -175,6 +193,16 @@ const addPlusToPhoneNumber = (phoneNumber: string): string => {
   return "+" + phoneNumber.substring(1);
 };
 
+const parseNumberFromBodyWithoutCountry = (incomingBody: string): string => {
+  const re = /(\d{10,})/gm;
+  const matchArray = re.exec(incomingBody);
+  // console.log({incomingBody}, {matchArray});
+  if (matchArray) {
+    // console.log('matchArray[0] ', matchArray[0]);
+    return 'n' + matchArray[0].slice(-10);
+  }
+  return '';
+};
 
 // ---------------------
 //   Temporary 'Database'
@@ -223,3 +251,6 @@ const users = {
     ]
   }
 };
+
+// Add my phone number for testing purposes and existing user
+const addMe = createNewUser(removePlusFromPhoneNumber(env.twilio.mynumber), ['n123544867', 'n190128', 'n134785634']);
