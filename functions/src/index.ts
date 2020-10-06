@@ -108,12 +108,12 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
 //   Command Functions
 // ---------------------
 const helpCommand = (): string => {
-  return `---Commands---
-'bot help' -  this help list
-'report <number>' -  how did you do since your last report? (number 1-10)
-'list contacts' -  list your accountable contacts
-'add contact <phone number>' -  add a contact
-'remove contact <phone number>' -  remove a contact`;
+  return `Commands:
+"bot help"  -   this help list
+"list contacts"  -  list your accountable contacts
+"add contact <phone number>"  -  add a contact
+"remove contact <phone number>"  -  remove a contact
+"report <number>"  -  how did you do since your last report? (number 1-10)`;
 };
 
 const listContactsCommand = async (incomingPhoneNumber: string): Promise<string> => {
@@ -205,4 +205,4 @@ const parseNumberFromBodyWithoutCountry = (incomingBody: string): string => {
 };
 
 // Add my phone number for testing purposes and existing user
-const addMe = createNewUser(replacePlusFromPhoneNumber(env.twilio.mynumber), ['n123544867', 'n190128', 'n134785634']);
+// const addMe = createNewUser(replacePlusFromPhoneNumber(env.twilio.mynumber), ['n123544867', 'n190128', 'n134785634']);
