@@ -2,6 +2,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 const twilio = require("twilio");
 const MessagingResponse = require("twilio").twiml.MessagingResponse;
+import MessagingResponseType = require('twilio/lib/twiml/MessagingResponse');
 
 const env = functions.config();
 
@@ -63,6 +64,8 @@ export const logRequest = functions.https.onRequest((request, response) => {
 export const handelIncomingMessage = functions.https.onRequest(async (request, response) => {
   functions.logger.info("handelIncomingMessage", { structuredData: true });
   // console.log(request.body);
+  let responseMessage = "Default Message";
+  const incomingBody = request.body.Body;
   
   // Remove '+' from front and add 'n'
   const incomingPhoneNumber: string = await removePlusFromPhoneNumber(request.body.From);
@@ -70,11 +73,16 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
   
   // Check if new user
   const isNewUser = await checkIfNewUser(incomingPhoneNumber);
+  if (isNewUser) {
+    responseMessage = `Welcome to the Accountability Bot!\nTo see a list of commands, text "bot help"`;
+  } else {
+    responseMessage = `Welcome back!  ${incomingBody}`;
+  }
 
   // Respond to message
-  const twiml = new MessagingResponse();
+  const twiml: MessagingResponseType = new MessagingResponse();
   if (request.body.Body) {
-    await twiml.message(isNewUser);
+    await twiml.message(responseMessage);
   } else {
     response.status(400).end();
     throw console.error('no body received');
@@ -88,8 +96,9 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
 // ---------------------
 //   Utility Functions
 // ---------------------
-const checkIfNewUser = async (incomingPhoneNumber: string) => {
-  let isNewUser = "";
+const checkIfNewUser = async (incomingPhoneNumber: string): Promise<boolean> => {
+  // Default Existing User
+  let isNewUser = false;
 
   // Create a reference to the cities collection
   const usersRef: admin.firestore.CollectionReference = db.collection('users');
@@ -100,27 +109,27 @@ const checkIfNewUser = async (incomingPhoneNumber: string) => {
   // const queryRef: admin.firestore.DocumentReference =  usersRef.doc(incomingPhoneNumber);
 
   // if (!users.hasOwnProperty(incomingPhoneNumber)) {  // This was using the hard coded user variable
-  console.log('queryRef empty ', queryRef.empty)
-  console.log('queryRef size ', queryRef.size)
+  // console.log('queryRef empty ', queryRef.empty)
+  // console.log('queryRef size ', queryRef.size)
   if (queryRef.empty) {
     // New User
-    isNewUser = "New User";
-    createNewUser(incomingPhoneNumber);
-  } else {
-    // Existing User
-    isNewUser = "Existing User";
+    isNewUser = true;
+    const newUserResults = await createNewUser(incomingPhoneNumber);
   }
   return isNewUser;
 };
 
-const createNewUser = (incomingPhoneNumber: string): void => {
-  const newUser: admin.firestore.DocumentData = db.collection('users').doc(incomingPhoneNumber).set({
+const createNewUser = async (incomingPhoneNumber: string): Promise<admin.firestore.WriteResult> => {
+  const newUserResults: admin.firestore.WriteResult = await db.collection('users').doc(incomingPhoneNumber).set({
     phoneNumber: incomingPhoneNumber,
-    dateCreated: '2020-10-03',
+    dateCreated: "2020-10-03",
     contacts: [],
-    history: []
+    history: [],
+    submittedToday: "false",
+    smsDailyTime: "07:00"
   });
-  console.log('created user: ', incomingPhoneNumber, newUser);
+  console.log('created user: ', incomingPhoneNumber, newUserResults.writeTime);
+  return newUserResults;
 };
 
 const removePlusFromPhoneNumber = (phoneNumber: string): string => {
