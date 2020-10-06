@@ -7,6 +7,7 @@ const env = functions.config();
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
 //
+
 export const helloWorld = functions.https.onRequest((request, response) => {
   functions.logger.info("Hello logs!", {structuredData: true});
   response.send("Hello from Firebase!");
@@ -31,43 +32,6 @@ export const twilioTrial = functions.https.onRequest((request, response) => {
   response.send("Sent");
 });
 
-// Firebase has a native way to do express. Not like this
-export const twilioReceiveExpressTrial = functions.https.onRequest((request, response) => {
-  functions.logger.info("twilioReceiveExpressTrial", { structuredData: true });
-
-  const http = require("http");
-  const express = require("express");
-  // const MessagingResponse = require("twilio").twiml.MessagingResponse;
-
-  const app = express();
-
-  app.post("/sms", (req: any, res: any) => {
-    const twiml = new MessagingResponse();
-
-    twiml.message("The Robots are coming! Head for the hills!");
-
-    res.writeHead(200, { "Content-Type": "text/xml" });
-    res.end(twiml.toString());
-  });
-
-  http.createServer(app).listen(1337, () => {
-    console.log("Express server listening on port 1337");
-  });
-
-  
-  response.send("Received");
-});
-
-export const twilioReceiveMessageTrial = functions.https.onRequest((request, response) => {
-  functions.logger.info("twilioReceiveMessage", { structuredData: true });
-
-  const twiml = new MessagingResponse();
-  twiml.message("The Robots are coming! Head for the hills 2!");
-
-  response.set({ "Content-Type": "text/xml" });
-  response.send(twiml.toString());
-});
-
 export const twilioReceiveAndSend = functions.https.onRequest((request, response) => {
   functions.logger.info("twilioReceiveAndSend", { structuredData: true });
 
@@ -85,3 +49,101 @@ export const twilioReceiveAndSend = functions.https.onRequest((request, response
   response.set({ "Content-Type": "text/xml" });
   response.status(200).send(twiml.toString());
 });
+
+export const logRequest = functions.https.onRequest((request, response) => {
+  functions.logger.info("logRequest", { structuredData: true });
+  console.log(request.body);
+  response.send("logging");
+});
+
+export const handelIncomingMessage = functions.https.onRequest((request, response) => {
+  // functions.logger.info("handelIncomingMessage", { structuredData: true });
+  console.log(request.body);
+  
+  // Remove '+' from front and add 'n'
+  const incomingPhoneNumber: string = removePlusFromPhoneNumber(request.body.From);
+  console.log("From: ", incomingPhoneNumber);
+  
+  // Check if new user
+  let message = "";
+  if (users.hasOwnProperty(incomingPhoneNumber)) {
+    // Existing User
+    message = "Existing User";
+  } else {
+    // New User
+    message = "New User";
+  }
+
+  // Respond to message
+  const twiml = new MessagingResponse();
+  if (request.body.Body) {
+    twiml.message(message);
+  } else {
+    response.status(400).end();
+    throw console.error('no body received');
+  }
+  console.log('response: ', twiml.toString());
+  response.set({ "Content-Type": "text/xml" });
+  response.status(200).send(twiml.toString());
+
+});
+
+
+// ---------------------
+//   Utility Functions
+// ---------------------
+const removePlusFromPhoneNumber = (phoneNumber: string) => {
+  return "n" + phoneNumber.substring(1);
+};
+// const addPlusToPhoneNumber = (phoneNumber: string) => {
+//   return "+" + phoneNumber.substring(1);
+// };
+
+
+// ---------------------
+//   Temporary 'Database'
+// ---------------------
+const users = {
+  "n12093419681": {
+    history: [
+      {
+        date: '2020-05-11',
+        rating: '7'
+      },
+      {
+        date: '2020-05-12',
+        rating: '5'
+      },
+      {
+        date: '2020-05-13',
+        rating: '8'
+      }
+    ],
+    contacts: [
+      "n1234567890",
+      "n1234567890",
+      "n1234567890"
+    ]
+  },
+  "n389467259w3": {
+    history: [
+      {
+        date: '2020-05-11',
+        rating: '7'
+      },
+      {
+        date: '2020-05-12',
+        rating: '5'
+      },
+      {
+        date: '2020-05-13',
+        rating: '8'
+      }
+    ],
+    contacts: [
+      "n1234567890",
+      "n1234567890",
+      "n1234567890"
+    ]
+  }
+};
