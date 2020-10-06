@@ -89,6 +89,8 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
     responseMessage = await listContactsCommand(incomingPhoneNumber);
   } else if (incomingBodyLowercase.includes("add") && incomingBodyLowercase.includes("contact")) {
     responseMessage = await addContactCommand(incomingPhoneNumber, incomingBodyLowercase);
+  } else if (incomingBodyLowercase.includes("hello")) {
+    responseMessage = 'Hello to you too!';
   }
 
   // Respond to message
