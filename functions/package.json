@@ -14,9 +14,8 @@
   },
   "main": "lib/index.js",
   "dependencies": {
-    "express": "^4.17.1",
-    "firebase-admin": "^8.10.0",
-    "firebase-functions": "^3.6.1",
+    "firebase-admin": "^8.13.0",
+    "firebase-functions": "^3.11.0",
     "twilio": "^3.49.4"
   },
   "devDependencies": {

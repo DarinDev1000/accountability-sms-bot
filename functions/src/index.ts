@@ -1,8 +1,12 @@
+import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 const twilio = require("twilio");
 const MessagingResponse = require("twilio").twiml.MessagingResponse;
 
 const env = functions.config();
+
+admin.initializeApp();
+const db = admin.firestore();
 
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
@@ -56,28 +60,21 @@ export const logRequest = functions.https.onRequest((request, response) => {
   response.send("logging");
 });
 
-export const handelIncomingMessage = functions.https.onRequest((request, response) => {
-  // functions.logger.info("handelIncomingMessage", { structuredData: true });
-  console.log(request.body);
+export const handelIncomingMessage = functions.https.onRequest(async (request, response) => {
+  functions.logger.info("handelIncomingMessage", { structuredData: true });
+  // console.log(request.body);
   
   // Remove '+' from front and add 'n'
-  const incomingPhoneNumber: string = removePlusFromPhoneNumber(request.body.From);
+  const incomingPhoneNumber: string = await removePlusFromPhoneNumber(request.body.From);
   console.log("From: ", incomingPhoneNumber);
   
   // Check if new user
-  let message = "";
-  if (users.hasOwnProperty(incomingPhoneNumber)) {
-    // Existing User
-    message = "Existing User";
-  } else {
-    // New User
-    message = "New User";
-  }
+  const isNewUser = await checkIfNewUser(incomingPhoneNumber);
 
   // Respond to message
   const twiml = new MessagingResponse();
   if (request.body.Body) {
-    twiml.message(message);
+    await twiml.message(isNewUser);
   } else {
     response.status(400).end();
     throw console.error('no body received');
@@ -85,19 +82,54 @@ export const handelIncomingMessage = functions.https.onRequest((request, respons
   console.log('response: ', twiml.toString());
   response.set({ "Content-Type": "text/xml" });
   response.status(200).send(twiml.toString());
-
 });
 
 
 // ---------------------
 //   Utility Functions
 // ---------------------
+const checkIfNewUser = async (incomingPhoneNumber: string) => {
+  let isNewUser = "";
+
+  // Create a reference to the cities collection
+  const usersRef: admin.firestore.CollectionReference = db.collection('users');
+
+  // Create a query against the collection
+  // const queryRef: any = await usersRef.where('phoneNumber', '==', incomingPhoneNumber).get();
+  const queryRef: admin.firestore.QuerySnapshot = await usersRef.where('phoneNumber', '==', incomingPhoneNumber).get();
+  // const queryRef: admin.firestore.DocumentReference =  usersRef.doc(incomingPhoneNumber);
+
+  // if (!users.hasOwnProperty(incomingPhoneNumber)) {  // This was using the hard coded user variable
+  console.log('queryRef empty ', queryRef.empty)
+  console.log('queryRef size ', queryRef.size)
+  if (queryRef.empty) {
+    // New User
+    isNewUser = "New User";
+    createNewUser(incomingPhoneNumber);
+  } else {
+    // Existing User
+    isNewUser = "Existing User";
+  }
+  return isNewUser;
+};
+
+const createNewUser = (incomingPhoneNumber: string) => {
+  const newUser = db.collection('users').doc(incomingPhoneNumber);
+  newUser.set({
+    phoneNumber: incomingPhoneNumber,
+    dateCreated: '2020-10-03',
+    contacts: [],
+    history: []
+  });
+  console.log('created user: ', incomingPhoneNumber);
+};
+
 const removePlusFromPhoneNumber = (phoneNumber: string) => {
   return "n" + phoneNumber.substring(1);
 };
-// const addPlusToPhoneNumber = (phoneNumber: string) => {
-//   return "+" + phoneNumber.substring(1);
-// };
+const addPlusToPhoneNumber = (phoneNumber: string) => {
+  return "+" + phoneNumber.substring(1);
+};
 
 
 // ---------------------
