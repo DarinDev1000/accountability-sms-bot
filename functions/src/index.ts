@@ -105,7 +105,7 @@ app.use(cors({ origin: true }));
 // app.delete("/:id", (req: any, res: ) => res.send(Widgets.delete(req.params.id)));
 // app.get("/", (req: any, res: any) => res.send(Widgets.list()));
 
-app.post("/", (req: any, res: any) => res.send(twilioReceiveAndSend(req, res)));
+app.post("/twilioReceiveAndSend", (req: any, res: any) => twilioReceiveAndSend(req, res));
 
 const twilioReceiveAndSend = (request: any, response: any) => {
   functions.logger.info("twilioReceiveAndSend", { structuredData: true });
@@ -126,4 +126,4 @@ const twilioReceiveAndSend = (request: any, response: any) => {
 }
 
 // Expose Express API as a single Cloud Function:
-exports.widgets = functions.https.onRequest(app);
+exports.twilio = functions.https.onRequest(app); // I just found the function name
