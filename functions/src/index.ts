@@ -67,11 +67,12 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
   // console.log(request.body);
   let responseMessage = "Default Message";
   const incomingBody: string = request.body.Body;
+  const incomingBodyLowercase = incomingBody.toLowerCase();
   console.log({incomingBody});
   
-  // Remove '+' from front and add 'n'
-  const incomingPhoneNumber: string = await replacePlusFromPhoneNumber(request.body.From);
-  console.log("From: ", incomingPhoneNumber);
+  // standardize Phone Number (Country code without the '+')
+  const incomingPhoneNumber: string = await request.body.From.slice(-11);
+  console.log("incomingPhoneNumber: ", incomingPhoneNumber);
   
   // Check if new user
   const isNewUser = await checkIfNewUser(incomingPhoneNumber);
@@ -82,12 +83,12 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
   }
 
   // Handle Commands
-  if (incomingBody.includes("help")) {
+  if (incomingBodyLowercase.includes("help")) {
     responseMessage = await helpCommand();
-  } else if (incomingBody.includes("list") && incomingBody.includes("contact")) {
+  } else if (incomingBodyLowercase.includes("list") && incomingBodyLowercase.includes("contact")) {
     responseMessage = await listContactsCommand(incomingPhoneNumber);
-  } else if (incomingBody.includes("add") && incomingBody.includes("contact")) {
-    responseMessage = await addContactCommand(incomingPhoneNumber, incomingBody);
+  } else if (incomingBodyLowercase.includes("add") && incomingBodyLowercase.includes("contact")) {
+    responseMessage = await addContactCommand(incomingPhoneNumber, incomingBodyLowercase);
   }
 
   // Respond to message
@@ -123,7 +124,7 @@ const listContactsCommand = async (incomingPhoneNumber: string): Promise<string>
   const userDocument: admin.firestore.DocumentSnapshot = await db.collection('users').doc(incomingPhoneNumber).get();
   const contactList = await userDocument.get('contacts');
   await contactList.forEach((contactNumber: string) => {
-    contactString += `\n${contactNumber.substring(2)}`;
+    contactString += `\n${formatPhoneNumberFancy(contactNumber, false)}`;
   });
   console.log({contactList});
   // console.log('contactString: ', contactString);
@@ -131,7 +132,7 @@ const listContactsCommand = async (incomingPhoneNumber: string): Promise<string>
 }
 
 const addContactCommand = async (incomingPhoneNumber: string, incomingBody: string): Promise<string> => {
-  const contactNumberToAdd = await parseNumberFromBodyWithoutCountry(incomingBody);
+  const contactNumberToAdd = await standardizePhoneNumber(incomingBody);
   console.log({contactNumberToAdd});
   if (contactNumberToAdd.length <= 2) {
     return 'Did not find a number to add.\nAdd a number in this format:\n"add contact 1234567890"'
@@ -140,12 +141,12 @@ const addContactCommand = async (incomingPhoneNumber: string, incomingBody: stri
   const userDocumentRef: admin.firestore.DocumentReference = await db.collection('users').doc(incomingPhoneNumber);
   const contactList: Array<string> = await (await userDocumentRef.get()).get('contacts');
   if (contactList.includes(contactNumberToAdd)) {
-    return `${contactNumberToAdd.substring(1)} is already in your contact list`;
+    return `${contactNumberToAdd} is already in your contact list`;
   }
   await contactList.push(contactNumberToAdd);
   const updateResponse = await userDocumentRef.update('contacts', contactList);
   console.log({contactList})
-  return `Added ${contactNumberToAdd.substring(1)} to your contact list`;
+  return `Added ${formatPhoneNumberFancy(contactNumberToAdd, true, true)} to your contact list`;
 }
 
 // ---------------------
@@ -187,23 +188,40 @@ const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string
   return newUserResults;
 };
 
-const replacePlusFromPhoneNumber = (phoneNumber: string): string => {
-  return "n" + phoneNumber.substring(1);
-};
-const addPlusToPhoneNumber = (phoneNumber: string): string => {
-  return "+" + phoneNumber.substring(1);
+const standardizePhoneNumber = (phoneNumber: string): string => {
+  const parsedPhoneNumber = parseNumberFromBody(phoneNumber);
+  console.log({parsedPhoneNumber})
+  if (parsedPhoneNumber.length >= 11) {
+    return parsedPhoneNumber;
+  } else if (parsedPhoneNumber.length === 10) {
+    return '1' + parsedPhoneNumber;
+  } else {
+    return '';
+  }
 };
 
-const parseNumberFromBodyWithoutCountry = (incomingBody: string): string => {
+const parseNumberFromBody = (incomingBody: string): string => {
   const re = /(\d{10,})/gm;
   const matchArray = re.exec(incomingBody);
   // console.log({incomingBody}, {matchArray});
   if (matchArray) {
     // console.log('matchArray[0] ', matchArray[0]);
-    return 'n' + matchArray[0].slice(-10);
+    return matchArray[0].slice(-12);
   }
   return '';
 };
 
+const formatPhoneNumberFancy = (phoneNumber: string, country = true, plus = false): string => {
+  let fancyPhoneNumber = `${phoneNumber.slice(0,-10)}(${phoneNumber.slice(-10, -7)})${phoneNumber.slice(-7, -4)}-${phoneNumber.slice(-4)}`;
+  if (country === false) {
+    fancyPhoneNumber = `(${phoneNumber.slice(-10, -7)})${phoneNumber.slice(-7, -4)}-${phoneNumber.slice(-4)}`;
+  }
+  if (plus === true) {
+    fancyPhoneNumber = '+' + fancyPhoneNumber;
+  }
+  console.log({fancyPhoneNumber});
+  return fancyPhoneNumber;
+};
+
 // Add my phone number for testing purposes and existing user
-// const addMe = createNewUser(replacePlusFromPhoneNumber(env.twilio.mynumber), ['n123544867', 'n190128', 'n134785634']);
+// const addMe = createNewUser(standardizePhoneNumber(env.twilio.mynumber), [standardizePhoneNumber('11234567890'), standardizePhoneNumber('01234567890')]);
