@@ -1,2 +1,2 @@
-# accountability-text-bot
-This is an accountability text bot for cell phones.
+# accountability-sms-bot
+This is an accountability sms bot for cell phones.
