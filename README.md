@@ -12,4 +12,5 @@ This is an accountability sms bot for cell phones.
 * "list contacts"
 * "add contact 1234567890"
 * "remove contact 1234567890"
+* "name \<your first name\>"
 * "report \<number\>"

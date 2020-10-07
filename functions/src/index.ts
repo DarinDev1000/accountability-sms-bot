@@ -71,6 +71,12 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
   const incomingBodyLowercase = incomingBody.toLowerCase();
   console.log({ incomingBody });
 
+  // Check if incoming body exist
+  if (!request.body.Body) {
+    response.status(400).end('no body received');
+    return;
+  }
+
   // standardize Phone Number (Country code without the '+')
   const incomingPhoneNumber: string = await request.body.From.slice(-11);
   console.log('incomingPhoneNumber: ', incomingPhoneNumber);
@@ -80,31 +86,39 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
   if (isNewUser) {
     responseMessage = 'Welcome to the Accountability Bot!\nTo see a list of commands, text "bot help"';
   } else {
-    responseMessage = `Welcome back!\nbody:\n${incomingBody}`;
-  }
+    // If existing user, check commands
+    responseMessage = `Welcome back!\n${incomingBody}`; // Default If no command is matched
 
-  // Handle Commands
-  if (incomingBodyLowercase.includes('help')) {
-    responseMessage = await helpCommand(incomingBodyLowercase);
-  } else if (incomingBodyLowercase.includes('hello')) {
-    responseMessage = 'Hello to you too!';
-  } else if (incomingBodyLowercase.includes('list') && incomingBodyLowercase.includes('contact')) {
-    responseMessage = await listContactsCommand(incomingPhoneNumber);
-  } else if (incomingBodyLowercase.includes('add') && incomingBodyLowercase.includes('contact')) {
-    responseMessage = await addContactCommand(incomingPhoneNumber, incomingBodyLowercase);
-  } else if (incomingBodyLowercase.includes('remove') && incomingBodyLowercase.includes('contact')) {
-    responseMessage = await removeContactCommand(incomingPhoneNumber, incomingBodyLowercase);
-  } 
+    // Handle Commands
+    if (incomingBodyLowercase.includes('help')) {
+      functions.logger.info('command: help');
+      responseMessage = await helpCommand(incomingBodyLowercase);
+    } else 
+    if (incomingBodyLowercase.includes('hello')) {
+      functions.logger.info('command: hello');
+      responseMessage = 'Hello to you too!';
+    } else 
+    if (incomingBodyLowercase.includes('list') && incomingBodyLowercase.includes('contact')) {
+      functions.logger.info('command: list contacts');
+      responseMessage = await listContactsCommand(incomingPhoneNumber);
+    } else 
+    if (incomingBodyLowercase.includes('add') && incomingBodyLowercase.includes('contact')) {
+      functions.logger.info('command: add contact');
+      responseMessage = await addContactCommand(incomingPhoneNumber, incomingBodyLowercase);
+    } else 
+    if (incomingBodyLowercase.includes('remove') && incomingBodyLowercase.includes('contact')) {
+      functions.logger.info('command: remove contact');
+      responseMessage = await removeContactCommand(incomingPhoneNumber, incomingBodyLowercase);
+    } else 
+    if (incomingBodyLowercase.includes('name')) {
+      functions.logger.info('command: name');
+      responseMessage = await changeFirstName(incomingPhoneNumber, incomingBody);
+    } 
+  }
 
   // Respond to message
   const twiml: MessagingResponseType = new MessagingResponse();
-  if (request.body.Body) {
-    await twiml.message(responseMessage);
-  } else {
-    response.status(400).end('no body received');
-    // throw new Error('no body received'); // No need to end the server with no body
-    return;
-  }
+  await twiml.message(responseMessage);
   console.log('response: ', twiml.toString());
   response.set({ 'Content-Type': 'text/xml' });
   // Currently, make new line because of trial text
@@ -123,14 +137,17 @@ const helpCommand = async (incomingBodyLowercase: string): Promise<string> => {
     helpMessage = '"add contact <phone number>"  -  add a contact';
   } else if (incomingBodyLowercase.includes('remove') && incomingBodyLowercase.includes('contact')) {
     helpMessage = '"remove contact <phone number>"  -  remove a contact';
+  } else if (incomingBodyLowercase.includes('name')) {
+    helpMessage = '"name <your name>"  -  your first name for your contacts to see';
   } else if (incomingBodyLowercase.includes('report')) {
     helpMessage = '"report <number>"  -  how did you do since your last report? (number 1-10)';
   } else {
     helpMessage = `Commands:
-"bot help"
+"help commands"
 "list contacts"
 "add contact 1234567890"
 "remove contact 1234567890"
+"name Paul"
 "report <number>"`;
   }
   return helpMessage;
@@ -192,6 +209,20 @@ const removeContactCommand = async (incomingPhoneNumber: string, incomingBody: s
   return `Removed ${formatPhoneNumberFancy(contactNumberToRemove, true, true)} from your contact list`;
 };
 
+const changeFirstName = async (incomingPhoneNumber: string, incomingBody: string): Promise<string> => {
+  const firstName = await parseFirstNameFromBody(incomingBody);
+  console.log({ firstName });
+  if (firstName.length < 2) {
+    return 'Did not find a name.\nAdd a name in this format:\n"name Paul"';
+  }
+  // Create a reference to the user document
+  const userDocumentRef: admin.firestore.DocumentReference = await db.collection('users').doc(incomingPhoneNumber);
+  // Add the name
+  const updateResponse = await userDocumentRef.update('firstName', firstName);
+  return `Added ${firstName} as your name`;
+};
+
+
 // ---------------------
 //   Utility Functions
 // ---------------------
@@ -218,10 +249,12 @@ const checkIfNewUser = async (incomingPhoneNumber: string): Promise<boolean> => 
   return isNewUser;
 };
 
-const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string> = [], history: Array<string> = []): Promise<admin.firestore.WriteResult> => {
+const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string> = [], history: Array<object> = []): Promise<admin.firestore.WriteResult> => {
   const newUserResults: admin.firestore.WriteResult = await db.collection('users').doc(incomingPhoneNumber).set({
     phoneNumber: incomingPhoneNumber,
-    dateCreated: '2020-10-03',
+    firstName: '',
+    // dateCreated: new Date().toISOString().substr(0,10), // without time
+    dateCreated: new Date().toISOString(),
     contacts,
     history,
     submittedToday: 'false',
@@ -265,5 +298,16 @@ const formatPhoneNumberFancy = (phoneNumber: string, country = true, plus = fals
   return fancyPhoneNumber;
 };
 
+const parseFirstNameFromBody = (incomingBody: string): string => {
+  const re = /[^name ]\S*/g;
+  const matchArray = re.exec(incomingBody);
+  console.log({incomingBody}, {matchArray});
+  if (matchArray) {
+    console.log('matchArray[0] ', matchArray[0]);
+    return matchArray[0];
+  }
+  return '';
+};
+
 // Add my phone number for testing purposes and existing user
-// const addMe = createNewUser(standardizePhoneNumber(env.twilio.mynumber), [standardizePhoneNumber('11234567890'), standardizePhoneNumber('01234567890')]);
+const addMe = createNewUser(standardizePhoneNumber(env.twilio.mynumber), [standardizePhoneNumber('11234567890'), standardizePhoneNumber('01234567890')]);
