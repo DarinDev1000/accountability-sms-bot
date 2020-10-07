@@ -379,7 +379,7 @@ const formatPhoneNumberFancy = (phoneNumber: string, country = true, plus = fals
 };
 
 const parseFirstNameFromBody = (incomingBody: string): string => {
-  const re = /(?<=^\s*name\s*)\w.*/g;
+  const re = /(?<=^\s*name\s*)\w.*/gi;
   const matchArray = re.exec(incomingBody);
   // console.log({incomingBody}, {matchArray});
   if (matchArray) {
