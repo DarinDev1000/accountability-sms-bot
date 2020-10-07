@@ -1,8 +1,10 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-const twilio = require("twilio");
-const MessagingResponse = require("twilio").twiml.MessagingResponse;
+
 import MessagingResponseType = require('twilio/lib/twiml/MessagingResponse');
+
+const { MessagingResponse } = require('twilio').twiml;
+const twilio = require('twilio');
 
 const env = functions.config();
 
@@ -12,7 +14,6 @@ const db = admin.firestore();
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
 //
-
 
 // export const helloWorld = functions.https.onRequest((request, response) => {
 //   functions.logger.info("Hello logs!", {structuredData: true});
@@ -34,7 +35,7 @@ const db = admin.firestore();
 //       from: env.twilio.twilionumber // From a valid Twilio number
 //     })
 //     .then((message: any) => console.log(message.sid));
-  
+
 //   response.send("Sent");
 // });
 
@@ -42,7 +43,7 @@ const db = admin.firestore();
 //   functions.logger.info("twilioReceiveAndSend", { structuredData: true });
 
 //   console.log('body: ', request.body.Body);
-  
+
 //   const twiml = new MessagingResponse();
 //   if (request.body.Body) {
 //     twiml.message(request.body.Body);
@@ -50,7 +51,7 @@ const db = admin.firestore();
 //     response.status(400).end();
 //     throw console.error('no body received');
 //   }
-  
+
 //   console.log('response: ', twiml.toString());
 //   response.set({ "Content-Type": "text/xml" });
 //   response.status(200).send(twiml.toString());
@@ -63,33 +64,33 @@ const db = admin.firestore();
 // });
 
 export const handelIncomingMessage = functions.https.onRequest(async (request, response) => {
-  functions.logger.info("handelIncomingMessage", { structuredData: true });
+  functions.logger.info('handelIncomingMessage', { structuredData: true });
   // console.log(request.body);
-  let responseMessage = "Default Message";
+  let responseMessage = 'Default Message';
   const incomingBody: string = request.body.Body;
   const incomingBodyLowercase = incomingBody.toLowerCase();
-  console.log({incomingBody});
-  
+  console.log({ incomingBody });
+
   // standardize Phone Number (Country code without the '+')
   const incomingPhoneNumber: string = await request.body.From.slice(-11);
-  console.log("incomingPhoneNumber: ", incomingPhoneNumber);
-  
+  console.log('incomingPhoneNumber: ', incomingPhoneNumber);
+
   // Check if new user
   const isNewUser = await checkIfNewUser(incomingPhoneNumber);
   if (isNewUser) {
-    responseMessage = `Welcome to the Accountability Bot!\nTo see a list of commands, text "bot help"`;
+    responseMessage = 'Welcome to the Accountability Bot!\nTo see a list of commands, text "bot help"';
   } else {
     responseMessage = `Welcome back!\nbody: ${incomingBody}`;
   }
 
   // Handle Commands
-  if (incomingBodyLowercase.includes("help")) {
+  if (incomingBodyLowercase.includes('help')) {
     responseMessage = await helpCommand();
-  } else if (incomingBodyLowercase.includes("list") && incomingBodyLowercase.includes("contact")) {
+  } else if (incomingBodyLowercase.includes('list') && incomingBodyLowercase.includes('contact')) {
     responseMessage = await listContactsCommand(incomingPhoneNumber);
-  } else if (incomingBodyLowercase.includes("add") && incomingBodyLowercase.includes("contact")) {
+  } else if (incomingBodyLowercase.includes('add') && incomingBodyLowercase.includes('contact')) {
     responseMessage = await addContactCommand(incomingPhoneNumber, incomingBodyLowercase);
-  } else if (incomingBodyLowercase.includes("hello")) {
+  } else if (incomingBodyLowercase.includes('hello')) {
     responseMessage = 'Hello to you too!';
   }
 
@@ -98,46 +99,43 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
   if (request.body.Body) {
     await twiml.message(responseMessage);
   } else {
-    response.status(400).end();
-    throw console.error('no body received');
+    response.status(400).end('no body received');
+    // throw new Error('no body received'); // No need to end the server with no body
+    return;
   }
   console.log('response: ', twiml.toString());
-  response.set({ "Content-Type": "text/xml" });
+  response.set({ 'Content-Type': 'text/xml' });
   response.status(200).send(twiml.toString());
 });
-
-
 
 // ---------------------
 //   Command Functions
 // ---------------------
-const helpCommand = (): string => {
-  return `Commands:
+const helpCommand = (): string => `Commands:
 "bot help"  -   this help list
 "list contacts"  -  list your accountable contacts
 "add contact <phone number>"  -  add a contact
 "remove contact <phone number>"  -  remove a contact
 "report <number>"  -  how did you do since your last report? (number 1-10)`;
-};
 
 const listContactsCommand = async (incomingPhoneNumber: string): Promise<string> => {
-  let contactString = "Here is your contacts:";
+  let contactString = 'Here is your contacts:';
   // Create a reference to the cities collection
   const userDocument: admin.firestore.DocumentSnapshot = await db.collection('users').doc(incomingPhoneNumber).get();
   const contactList = await userDocument.get('contacts');
   await contactList.forEach((contactNumber: string) => {
     contactString += `\n${formatPhoneNumberFancy(contactNumber, false)}`;
   });
-  console.log({contactList});
+  console.log({ contactList });
   // console.log('contactString: ', contactString);
   return contactString;
-}
+};
 
 const addContactCommand = async (incomingPhoneNumber: string, incomingBody: string): Promise<string> => {
   const contactNumberToAdd = await standardizePhoneNumber(incomingBody);
-  console.log({contactNumberToAdd});
+  console.log({ contactNumberToAdd });
   if (contactNumberToAdd.length <= 2) {
-    return 'Did not find a number to add.\nAdd a number in this format:\n"add contact 1234567890"'
+    return 'Did not find a number to add.\nAdd a number in this format:\n"add contact 1234567890"';
   }
   // Create a reference to the cities collection
   const userDocumentRef: admin.firestore.DocumentReference = await db.collection('users').doc(incomingPhoneNumber);
@@ -147,9 +145,9 @@ const addContactCommand = async (incomingPhoneNumber: string, incomingBody: stri
   }
   await contactList.push(contactNumberToAdd);
   const updateResponse = await userDocumentRef.update('contacts', contactList);
-  console.log({contactList})
+  console.log({ contactList });
   return `Added ${formatPhoneNumberFancy(contactNumberToAdd, true, true)} to your contact list`;
-}
+};
 
 // ---------------------
 //   Utility Functions
@@ -180,11 +178,11 @@ const checkIfNewUser = async (incomingPhoneNumber: string): Promise<boolean> => 
 const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string> = [], history: Array<string> = []): Promise<admin.firestore.WriteResult> => {
   const newUserResults: admin.firestore.WriteResult = await db.collection('users').doc(incomingPhoneNumber).set({
     phoneNumber: incomingPhoneNumber,
-    dateCreated: "2020-10-03",
-    contacts: contacts,
-    history: history,
-    submittedToday: "false",
-    smsDailyTime: "07:00"
+    dateCreated: '2020-10-03',
+    contacts,
+    history,
+    submittedToday: 'false',
+    smsDailyTime: '07:00',
   });
   console.log('created user: ', incomingPhoneNumber, newUserResults.writeTime);
   return newUserResults;
@@ -192,14 +190,13 @@ const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string
 
 const standardizePhoneNumber = (phoneNumber: string): string => {
   const parsedPhoneNumber = parseNumberFromBody(phoneNumber);
-  console.log({parsedPhoneNumber})
+  console.log({ parsedPhoneNumber });
   if (parsedPhoneNumber.length >= 11) {
     return parsedPhoneNumber;
-  } else if (parsedPhoneNumber.length === 10) {
-    return '1' + parsedPhoneNumber;
-  } else {
-    return '';
+  } if (parsedPhoneNumber.length === 10) {
+    return `1${parsedPhoneNumber}`;
   }
+  return '';
 };
 
 const parseNumberFromBody = (incomingBody: string): string => {
@@ -214,14 +211,14 @@ const parseNumberFromBody = (incomingBody: string): string => {
 };
 
 const formatPhoneNumberFancy = (phoneNumber: string, country = true, plus = false): string => {
-  let fancyPhoneNumber = `${phoneNumber.slice(0,-10)}(${phoneNumber.slice(-10, -7)})${phoneNumber.slice(-7, -4)}-${phoneNumber.slice(-4)}`;
+  let fancyPhoneNumber = `${phoneNumber.slice(0, -10)}(${phoneNumber.slice(-10, -7)})${phoneNumber.slice(-7, -4)}-${phoneNumber.slice(-4)}`;
   if (country === false) {
     fancyPhoneNumber = `(${phoneNumber.slice(-10, -7)})${phoneNumber.slice(-7, -4)}-${phoneNumber.slice(-4)}`;
   }
   if (plus === true) {
-    fancyPhoneNumber = '+' + fancyPhoneNumber;
+    fancyPhoneNumber = `+${fancyPhoneNumber}`;
   }
-  console.log({fancyPhoneNumber});
+  console.log({ fancyPhoneNumber });
   return fancyPhoneNumber;
 };
 

@@ -5,6 +5,8 @@ module.exports = {
     node: true,
   },
   extends: [
+    // "airbnb-base", // Default airbnb eslint config
+    "airbnb-typescript/base", // Extension of airbnb config with typescript. Is this necessary now?
     "plugin:import/errors",
     "plugin:import/warnings",
   ],
@@ -18,6 +20,10 @@ module.exports = {
     "import",
   ],
   rules: {
+    "no-console": "off",
+    "max-len": "off",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/adjacent-overload-signatures": "error",
     "@typescript-eslint/no-empty-function": "error",
     "@typescript-eslint/no-empty-interface": "warn",
@@ -30,6 +36,7 @@ module.exports = {
     "comma-dangle": "warn",
     "constructor-super": "error",
     eqeqeq: ["warn", "always"],
+    "import/prefer-default-export": "off",
     "import/no-deprecated": "warn",
     "import/no-extraneous-dependencies": "error",
     "import/no-unassigned-import": "warn",
@@ -55,9 +62,9 @@ module.exports = {
     ],
     "no-throw-literal": "error",
     "no-unsafe-finally": "error",
-    "no-unused-labels": "error",
+    "no-unused-labels": "warn",
     "no-var": "warn",
-    "no-void": "error",
+    "no-void": "warn",
     "prefer-const": "warn",
   },
   settings: {

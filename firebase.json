@@ -14,11 +14,11 @@
       "port": 5000
     },
     "firestore": {
-      "port": 8098
+      "port": 5013
     },
     "ui": {
       "enabled": true,
-      "port": 8088
+      "port": 5011
     }
   }
 }
