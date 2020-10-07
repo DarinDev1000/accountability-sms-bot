@@ -63,8 +63,8 @@ const db = admin.firestore();
 //   response.send("logging");
 // });
 
-export const handelIncomingMessage = functions.https.onRequest(async (request, response) => {
-  functions.logger.info('handelIncomingMessage', { structuredData: true });
+export const handleIncomingMessage = functions.https.onRequest(async (request, response) => {
+  functions.logger.info('handleIncomingMessage', { structuredData: true });
   // console.log(request.body);
   let responseMessage = 'Default Message';
   const incomingBody: string = request.body.Body;
@@ -113,7 +113,10 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
 // ---------------------
 //   Command Functions
 // ---------------------
-const helpCommand = (): string => `Commands:
+const helpCommand = (): string => {
+  // Handle
+
+}`Commands:
 "bot help"  -   this help list
 "list contacts"  -  list your accountable contacts
 "add contact 1234567890"  -  add a contact
