@@ -85,16 +85,16 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
 
   // Handle Commands
   if (incomingBodyLowercase.includes('help')) {
-    responseMessage = await helpCommand();
+    responseMessage = await helpCommand(incomingBodyLowercase);
+  } else if (incomingBodyLowercase.includes('hello')) {
+    responseMessage = 'Hello to you too!';
   } else if (incomingBodyLowercase.includes('list') && incomingBodyLowercase.includes('contact')) {
     responseMessage = await listContactsCommand(incomingPhoneNumber);
   } else if (incomingBodyLowercase.includes('add') && incomingBodyLowercase.includes('contact')) {
     responseMessage = await addContactCommand(incomingPhoneNumber, incomingBodyLowercase);
   } else if (incomingBodyLowercase.includes('remove') && incomingBodyLowercase.includes('contact')) {
     responseMessage = await removeContactCommand(incomingPhoneNumber, incomingBodyLowercase);
-  } else if (incomingBodyLowercase.includes('hello')) {
-    responseMessage = 'Hello to you too!';
-  }
+  } 
 
   // Respond to message
   const twiml: MessagingResponseType = new MessagingResponse();
@@ -107,21 +107,34 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
   }
   console.log('response: ', twiml.toString());
   response.set({ 'Content-Type': 'text/xml' });
-  response.status(200).send(twiml.toString());
+  // Currently, make new line because of trial text
+  response.status(200).send(`\n${twiml.toString()}`);
 });
 
 // ---------------------
 //   Command Functions
 // ---------------------
-const helpCommand = (): string => {
-  // Handle
-
-}`Commands:
-"bot help"  -   this help list
-"list contacts"  -  list your accountable contacts
-"add contact 1234567890"  -  add a contact
-"remove contact 1234567890"  -  remove a contact
-"report <number>"  -  how did you do since your last report? (number 1-10)`;
+const helpCommand = async (incomingBodyLowercase: string): Promise<string> => {
+  let helpMessage = 'Default Help Message';
+  // Handle help commands
+  if (incomingBodyLowercase.includes('list') && incomingBodyLowercase.includes('contact')) {
+    helpMessage = '"list contacts"  -  list your accountable contacts';
+  } else if (incomingBodyLowercase.includes('add') && incomingBodyLowercase.includes('contact')) {
+    helpMessage = '"add contact <phone number>"  -  add a contact';
+  } else if (incomingBodyLowercase.includes('remove') && incomingBodyLowercase.includes('contact')) {
+    helpMessage = '"remove contact <phone number>"  -  remove a contact';
+  } else if (incomingBodyLowercase.includes('report')) {
+    helpMessage = '"report <number>"  -  how did you do since your last report? (number 1-10)';
+  } else {
+    helpMessage = `Commands:
+"bot help"
+"list contacts"
+"add contact 1234567890"
+"remove contact 1234567890"
+"report <number>"`;
+  }
+  return helpMessage;
+};
 
 const listContactsCommand = async (incomingPhoneNumber: string): Promise<string> => {
   let contactString = 'Here is your contacts:';
@@ -167,7 +180,7 @@ const removeContactCommand = async (incomingPhoneNumber: string, incomingBody: s
   const contactList: Array<string> = await (await userDocumentRef.get()).get('contacts');
   // Check if number exist in list
   if (!contactList.includes(contactNumberToRemove)) {
-    return `${contactNumberToRemove} is not contact list`;
+    return `${contactNumberToRemove} is not on your contact list`;
   }
   // Remove the number from the contact list
   const removeKey = await contactList.indexOf(contactNumberToRemove);
