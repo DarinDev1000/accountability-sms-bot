@@ -148,15 +148,18 @@ const helpCommand = async (incomingBodyLowercase: string): Promise<string> => {
   } else if (incomingBodyLowercase.includes('name')) {
     helpMessage = '"name <your name>"  -  your first name for your contacts to see';
   } else if (incomingBodyLowercase.includes('report')) {
-    helpMessage = '"report <number>"  -  how did you do since your last report? (number 1-10)';
+    helpMessage = '"report <number>"  -  how did you do since your last report? (number 1-10)\nOr just send the value only (Ex. "10") and that will report it!';
   } else {
-    helpMessage = `Commands:
+    helpMessage = `
 "help commands"
 "list contacts"
 "add contact 1234567890"
 "remove contact 1234567890"
 "name Paul"
-"report <number>"`;
+"report <number>"
+
+You can also look at detailed help for a command:
+"help <command name>"`;
   }
   return helpMessage;
 };
