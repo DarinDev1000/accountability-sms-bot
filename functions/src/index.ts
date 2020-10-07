@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import constants from './constants';
 
 import MessagingResponseType = require('twilio/lib/twiml/MessagingResponse');
 
@@ -10,14 +11,6 @@ const env = functions.config();
 
 admin.initializeApp();
 const db = admin.firestore();
-
-
-exports.basicTest = function(){
-  const a = 1;
-  const b = 5;
-  return a + b;
-}
-
 
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
@@ -148,27 +141,17 @@ const helpCommand = async (incomingBodyLowercase: string): Promise<string> => {
   let helpMessage = 'Default Help Message';
   // Handle help commands
   if (incomingBodyLowercase.includes('list') && incomingBodyLowercase.includes('contact')) {
-    helpMessage = '"list contacts"  -  list your accountable contacts';
+    helpMessage = constants.help.helpListContact;
   } else if (incomingBodyLowercase.includes('add') && incomingBodyLowercase.includes('contact')) {
-    helpMessage = '"add contact <phone number>"  -  add a contact';
+    helpMessage = constants.help.helpAddContact;
   } else if (incomingBodyLowercase.includes('remove') && incomingBodyLowercase.includes('contact')) {
-    helpMessage = '"remove contact <phone number>"  -  remove a contact';
+    helpMessage = constants.help.helpRemoveContact;
   } else if (incomingBodyLowercase.includes('name')) {
-    helpMessage = '"name <your name>"  -  your first name for your contacts to see';
+    helpMessage = constants.help.helpChangeName;
   } else if (incomingBodyLowercase.includes('report')) {
-    helpMessage = '"report <number>"  -  how did you do since your last report? (number 1-10)\nOr just send the value only (Ex. "10") and that will report it!';
+    helpMessage = constants.help.helpReportNumber;
   } else {
-    helpMessage = `
-"help commands"
-"list contacts"
-"add contact 1234567890"
-"remove contact 1234567890"
-"name Paul"
-"report 10"
-"history"
-
-You can also look at detailed help for a command:
-"help <command name>"`;
+    helpMessage = constants.help.helpCommands;
   }
   return helpMessage;
 };
