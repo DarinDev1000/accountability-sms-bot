@@ -11,8 +11,8 @@
 
 
 // Now we can require index.js and save the exports inside a namespace called myFunctions.
-const myFunctions = require('index.js');
-// import * from 'index';
+const myFunctions = require('./index.js');
+// import * from './index';
 
 // Basic test
 describe('basicTest', () => {
