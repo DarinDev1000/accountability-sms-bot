@@ -113,7 +113,15 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
     if (incomingBodyLowercase.includes('name')) {
       functions.logger.info('command: name');
       responseMessage = await changeFirstName(incomingPhoneNumber, incomingBody);
-    } 
+    } else 
+    if (incomingBodyLowercase.includes('report')) {
+      functions.logger.info('command: report');
+      responseMessage = await reportNumber(incomingPhoneNumber, incomingBodyLowercase); // withe the report text
+    } else 
+    if (checkIfBodyOnlyNumber(incomingBodyLowercase)) {
+      functions.logger.info('command: report (number only)');
+      responseMessage = await reportNumber(incomingPhoneNumber, incomingBodyLowercase, true); // number only
+    }
   }
 
   // Respond to message
@@ -222,6 +230,81 @@ const changeFirstName = async (incomingPhoneNumber: string, incomingBody: string
   return `Added ${firstName} as your name`;
 };
 
+/*
+  historyList = [
+    {
+      date: "2020-10-07T09:55:16.967Z",
+      reportValue: 7
+    },
+    {
+      date: "2020-10-06T09:55:16.967Z",
+      reportValue: 8
+    }
+  ]
+  historyCollection = {
+    "2020-10-07": {
+      date: "2020-10-07",
+      time: "2020-10-07T09:55:16.967Z",
+      reportValue: 7
+    },
+    "2020-10-06": {
+      date: "2020-10-06",
+      time: "2020-10-06T09:55:16.967Z",
+      reportValue: 8
+    }
+  }
+*/
+const reportNumber = async (incomingPhoneNumber: string, incomingBodyLowercase: string, numberOnly: boolean = false): Promise<string> => {
+  let numberSubmitted = -2;
+  const today = new Date().toISOString();
+  if (numberOnly) {
+    numberSubmitted = getReportOnlyNumberFromBody(incomingBodyLowercase);
+  } else {
+    numberSubmitted = parseReportNumberFromBody(incomingBodyLowercase);
+  }
+  console.log({ numberSubmitted });
+  if (numberSubmitted <= 0) {
+    return 'Did not find a number to report.\nReport a number in this format:\n"report 8"\nor just the number\n"8"';
+  }
+  
+  // Let's do this the firebase way
+  
+  // Create a reference to the user document
+  const userDocumentRef: admin.firestore.CollectionReference = await db.collection('users').doc(incomingPhoneNumber).collection('historyCollection');
+  // const historyList: Array<{date: string, reportValue: number}> = await (await userDocumentRef.get()).get('history');
+
+
+  // This looks like it might only work for document queries. not within documents // Now it's a collection!
+  // Unless I do sub-collections! Then the firebase queries might work
+  const existingReport: admin.firestore.QuerySnapshot = await userDocumentRef.where('date', '==', today.substr(0,10)).get();
+  // existingReport.forEach(doc => console.log('existing doc: ', doc.data())); // log the existing report
+
+
+  // Check if already reported for today
+  // console.log('matching report from today: ', historyList.filter(reportObject => reportObject.date === today.substr(0,10)))
+  console.log('New Report: ', existingReport.empty);
+  if (!existingReport.empty) {
+    return `You have already submitted a report for today`;
+  }
+
+  // Generate the object
+  const reportObject = {
+    date: today.substr(0,10),
+    time: today,
+    reportValue: numberSubmitted
+  };
+  console.log({ reportObject });
+
+  // Atomically Add the report to the history array // Firebase way!
+  // const unionRes = await userDocumentRef.update({
+  //   history: admin.firestore.FieldValue.arrayUnion('greater_virginia')
+  // });
+
+  // Write the report object
+  await userDocumentRef.doc(today.substr(0,10)).set(reportObject);
+  return `Reported ${numberSubmitted}`;
+};
+
 
 // ---------------------
 //   Utility Functions
@@ -266,7 +349,7 @@ const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string
 
 const standardizePhoneNumber = (phoneNumber: string): string => {
   const parsedPhoneNumber = parseNumberFromBody(phoneNumber);
-  console.log({ parsedPhoneNumber });
+  // console.log({ parsedPhoneNumber });
   if (parsedPhoneNumber.length >= 11) {
     return parsedPhoneNumber;
   } if (parsedPhoneNumber.length === 10) {
@@ -299,15 +382,49 @@ const formatPhoneNumberFancy = (phoneNumber: string, country = true, plus = fals
 };
 
 const parseFirstNameFromBody = (incomingBody: string): string => {
-  const re = /[^name ]\S*/g;
+  const re = /(?<=^\s*name\s*)\w.*/g;
   const matchArray = re.exec(incomingBody);
-  console.log({incomingBody}, {matchArray});
+  // console.log({incomingBody}, {matchArray});
   if (matchArray) {
-    console.log('matchArray[0] ', matchArray[0]);
+    // console.log('matchArray[0] ', matchArray[0]);
     return matchArray[0];
   }
   return '';
 };
+
+const checkIfBodyOnlyNumber = (incomingBody: string): boolean => {
+  const re = /(?<=^\s*)(10)(?=\s*$)|(?<=^\s*)([123456789])(?=\s*$)/g;
+  const matchArray = re.exec(incomingBody);
+  // console.log({incomingBody}, {matchArray});
+  if (matchArray) {
+    // console.log('matchArray[0] ', matchArray[0]);
+    return true;
+  }
+  return false;
+};
+
+const getReportOnlyNumberFromBody = (incomingBody: string): number => {
+  const re = /(?<=^\s*)(10)(?=\s*$)|(?<=^\s*)([123456789])(?=\s*$)/g;
+  const matchArray = re.exec(incomingBody);
+  // console.log({incomingBody}, {matchArray});
+  if (matchArray) {
+    // console.log('matchArray[0] ', matchArray[0]);
+    return parseInt(matchArray[0]);
+  }
+  return -1;
+};
+
+const parseReportNumberFromBody = (incomingBody: string): number => {
+  const re = /(?<=^report\s*)10(?=\s*$)|(?<=^report\s*)[123456789](?=\s*$)/gi;
+  const matchArray = re.exec(incomingBody);
+  // console.log({incomingBody}, {matchArray});
+  if (matchArray) {
+    // console.log('matchArray[0] ', matchArray[0]);
+    return parseInt(matchArray[0]);
+  }
+  return -1;
+};
+
 
 // Add my phone number for testing purposes and existing user
 const addMe = createNewUser(standardizePhoneNumber(env.twilio.mynumber), [standardizePhoneNumber('11234567890'), standardizePhoneNumber('01234567890')]);
