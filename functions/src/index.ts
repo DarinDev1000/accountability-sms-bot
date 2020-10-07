@@ -11,6 +11,14 @@ const env = functions.config();
 admin.initializeApp();
 const db = admin.firestore();
 
+
+exports.basicTest = function(){
+  const a = 1;
+  const b = 5;
+  return a + b;
+}
+
+
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
 //
