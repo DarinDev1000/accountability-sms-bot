@@ -90,6 +90,8 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
     responseMessage = await listContactsCommand(incomingPhoneNumber);
   } else if (incomingBodyLowercase.includes('add') && incomingBodyLowercase.includes('contact')) {
     responseMessage = await addContactCommand(incomingPhoneNumber, incomingBodyLowercase);
+  } else if (incomingBodyLowercase.includes('remove') && incomingBodyLowercase.includes('contact')) {
+    responseMessage = await removeContactCommand(incomingPhoneNumber, incomingBodyLowercase);
   } else if (incomingBodyLowercase.includes('hello')) {
     responseMessage = 'Hello to you too!';
   }
@@ -114,8 +116,8 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
 const helpCommand = (): string => `Commands:
 "bot help"  -   this help list
 "list contacts"  -  list your accountable contacts
-"add contact <phone number>"  -  add a contact
-"remove contact <phone number>"  -  remove a contact
+"add contact 1234567890"  -  add a contact
+"remove contact 1234567890"  -  remove a contact
 "report <number>"  -  how did you do since your last report? (number 1-10)`;
 
 const listContactsCommand = async (incomingPhoneNumber: string): Promise<string> => {
@@ -134,19 +136,44 @@ const listContactsCommand = async (incomingPhoneNumber: string): Promise<string>
 const addContactCommand = async (incomingPhoneNumber: string, incomingBody: string): Promise<string> => {
   const contactNumberToAdd = await standardizePhoneNumber(incomingBody);
   console.log({ contactNumberToAdd });
-  if (contactNumberToAdd.length <= 2) {
+  if (contactNumberToAdd.length <= 9) {
     return 'Did not find a number to add.\nAdd a number in this format:\n"add contact 1234567890"';
   }
-  // Create a reference to the cities collection
+  // Create a reference to the user document
   const userDocumentRef: admin.firestore.DocumentReference = await db.collection('users').doc(incomingPhoneNumber);
   const contactList: Array<string> = await (await userDocumentRef.get()).get('contacts');
+  // Check if number exist in list
   if (contactList.includes(contactNumberToAdd)) {
     return `${contactNumberToAdd} is already in your contact list`;
   }
+  // Add the number to the contact list
   await contactList.push(contactNumberToAdd);
   const updateResponse = await userDocumentRef.update('contacts', contactList);
   console.log({ contactList });
   return `Added ${formatPhoneNumberFancy(contactNumberToAdd, true, true)} to your contact list`;
+};
+
+const removeContactCommand = async (incomingPhoneNumber: string, incomingBody: string): Promise<string> => {
+  const contactNumberToRemove = await standardizePhoneNumber(incomingBody);
+  console.log({ contactNumberToRemove });
+  if (contactNumberToRemove.length <= 9) {
+    return 'Did not find a number to add.\nAdd a number in this format:\n"add contact 1234567890"';
+  }
+  // Create a reference to the user document
+  const userDocumentRef: admin.firestore.DocumentReference = await db.collection('users').doc(incomingPhoneNumber);
+  const contactList: Array<string> = await (await userDocumentRef.get()).get('contacts');
+  // Check if number exist in list
+  if (!contactList.includes(contactNumberToRemove)) {
+    return `${contactNumberToRemove} is not contact list`;
+  }
+  // Remove the number from the contact list
+  const removeKey = await contactList.indexOf(contactNumberToRemove);
+  if (removeKey > -1) {
+    await contactList.splice(removeKey, 1);
+  };
+  const updateResponse = await userDocumentRef.update('contacts', contactList);
+  console.log({ contactList });
+  return `Removed ${formatPhoneNumberFancy(contactNumberToRemove, true, true)} from your contact list`;
 };
 
 // ---------------------
