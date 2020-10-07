@@ -8,7 +8,7 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "test": "jest lib/*",
+    "test": "jest --detectOpenHandles --testTimeout 5000 lib/*",
     "mocha": "mocha --reporter spec lib/*"
   },
   "engines": {

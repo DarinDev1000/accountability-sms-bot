@@ -1,6 +1,12 @@
+import { env } from './env';
+
 // Require firebase-admin so we can stub out some of its methods.
 const admin = require('firebase-admin');
-// At the top of test/index.test.js
+const firebaseTest = require('firebase-functions-test')(
+  env.firebaseConfig,
+  {"project_id": "accountability-sms-bot"},
+  '../accountability-sms-bot-f844e687d875.json'
+);
 // const firebaseTest = require('firebase-functions-test')();
 
 // const functions = require('firebase-functions');
@@ -19,21 +25,59 @@ import constants from './constants';
 // To fix non exported functions
 const rewire = require('rewire');
 const index = rewire('./index');
-let adminStub;
+let adminStub: any;
 beforeAll(() =>{
   adminStub = jest.spyOn(admin, "initializeApp");
   // index = rewire('./index');
   return;
 });
 
+afterAll(() =>{
+  adminStub.mockRestore();
+  // testEnv.cleanup();
+});
 
+describe('helloWorld', () => {
+  it('should be Hello From Firebase', async (done) => {
+    // A fake request object
+    const req = {};
+    const res = {
+      send: (testResponse: any) => {
+      //Run the test in response callback of the HTTPS function
+      expect(testResponse).toBe("Hello from Firebase!");
+      //done() is to be triggered to finish the function
+      done();
+      }
+    };
+    index.helloWorld(req,res);
+  });
+});
+
+describe('handleIncomingMessage', () => {
+  it('should return something', async (done) => {
+    // A fake request object
+    const req = {body: { Body: 'the body', "From": "+12093419681",}};
+    const res = {
+      set: (myheader: any) => {},
+      status: (mystatus: any) => {return {send: (mysend: any) => {}}},
+      send: (testResponse: any) => {
+      //Run the test in response callback of the HTTPS function
+      expect(testResponse).toBeCalled();
+      //done() is to be triggered to finish the function
+      done();
+      }
+    };
+    await index.handleIncomingMessage(req,res);
+  });
+});
+
+// const handleIncomingMessage = index.__get__('handleIncomingMessage');
 // describe('handleIncomingMessage', () => {
-//   const handleIncomingMessage = myFunctions.__get__('handleIncomingMessage');
 //   it('should be 6', async () => {
 //     // "Wrap" the basicTest function from index.js
 //     // const wrapped = test.wrap(myFunctions.handleIncomingMessage);
 //     // return assert.equal(wrapped(), true);
-//     return assert.equal(await handleIncomingMessage("{IncomingMessage: {body: { Body: 'the body'}}}"), 'output')
+//     expect(await handleIncomingMessage("{IncomingMessage: {body: { Body: 'the body'}}}").toBeTruthy());
 //   });
 // });
 
