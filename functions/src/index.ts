@@ -156,7 +156,8 @@ const helpCommand = async (incomingBodyLowercase: string): Promise<string> => {
 "add contact 1234567890"
 "remove contact 1234567890"
 "name Paul"
-"report <number>"
+"report 10"
+"history"
 
 You can also look at detailed help for a command:
 "help <command name>"`;
