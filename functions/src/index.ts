@@ -80,7 +80,7 @@ export const handelIncomingMessage = functions.https.onRequest(async (request, r
   if (isNewUser) {
     responseMessage = 'Welcome to the Accountability Bot!\nTo see a list of commands, text "bot help"';
   } else {
-    responseMessage = `Welcome back!\nbody: ${incomingBody}`;
+    responseMessage = `Welcome back!\nbody:\n${incomingBody}`;
   }
 
   // Handle Commands
