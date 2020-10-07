@@ -93,31 +93,31 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
     if (incomingBodyLowercase.includes('help')) {
       functions.logger.info('command: help');
       responseMessage = await helpCommand(incomingBodyLowercase);
-    } else 
+    } else
     if (incomingBodyLowercase.includes('hello')) {
       functions.logger.info('command: hello');
       responseMessage = 'Hello to you too!';
-    } else 
+    } else
     if (incomingBodyLowercase.includes('list') && incomingBodyLowercase.includes('contact')) {
       functions.logger.info('command: list contacts');
       responseMessage = await listContactsCommand(incomingPhoneNumber);
-    } else 
+    } else
     if (incomingBodyLowercase.includes('add') && incomingBodyLowercase.includes('contact')) {
       functions.logger.info('command: add contact');
       responseMessage = await addContactCommand(incomingPhoneNumber, incomingBodyLowercase);
-    } else 
+    } else
     if (incomingBodyLowercase.includes('remove') && incomingBodyLowercase.includes('contact')) {
       functions.logger.info('command: remove contact');
       responseMessage = await removeContactCommand(incomingPhoneNumber, incomingBodyLowercase);
-    } else 
+    } else
     if (incomingBodyLowercase.includes('name')) {
       functions.logger.info('command: name');
       responseMessage = await changeFirstName(incomingPhoneNumber, incomingBody);
-    } else 
+    } else
     if (incomingBodyLowercase.includes('report')) {
       functions.logger.info('command: report');
       responseMessage = await reportNumber(incomingPhoneNumber, incomingBodyLowercase); // withe the report text
-    } else 
+    } else
     if (checkIfBodyOnlyNumber(incomingBodyLowercase)) {
       functions.logger.info('command: report (number only)');
       responseMessage = await reportNumber(incomingPhoneNumber, incomingBodyLowercase, true); // number only
@@ -211,7 +211,7 @@ const removeContactCommand = async (incomingPhoneNumber: string, incomingBody: s
   const removeKey = await contactList.indexOf(contactNumberToRemove);
   if (removeKey > -1) {
     await contactList.splice(removeKey, 1);
-  };
+  }
   const updateResponse = await userDocumentRef.update('contacts', contactList);
   console.log({ contactList });
   return `Removed ${formatPhoneNumberFancy(contactNumberToRemove, true, true)} from your contact list`;
@@ -266,32 +266,30 @@ const reportNumber = async (incomingPhoneNumber: string, incomingBodyLowercase: 
   if (numberSubmitted <= 0) {
     return 'Did not find a number to report.\nReport a number in this format:\n"report 8"\nor just the number\n"8"';
   }
-  
+
   // Let's do this the firebase way
-  
+
   // Create a reference to the user document
   const userDocumentRef: admin.firestore.CollectionReference = await db.collection('users').doc(incomingPhoneNumber).collection('historyCollection');
   // const historyList: Array<{date: string, reportValue: number}> = await (await userDocumentRef.get()).get('history');
 
-
   // This looks like it might only work for document queries. not within documents // Now it's a collection!
   // Unless I do sub-collections! Then the firebase queries might work
-  const existingReport: admin.firestore.QuerySnapshot = await userDocumentRef.where('date', '==', today.substr(0,10)).get();
+  const existingReport: admin.firestore.QuerySnapshot = await userDocumentRef.where('date', '==', today.substr(0, 10)).get();
   // existingReport.forEach(doc => console.log('existing doc: ', doc.data())); // log the existing report
-
 
   // Check if already reported for today
   // console.log('matching report from today: ', historyList.filter(reportObject => reportObject.date === today.substr(0,10)))
   console.log('New Report: ', existingReport.empty);
   if (!existingReport.empty) {
-    return `You have already submitted a report for today`;
+    return 'You have already submitted a report for today';
   }
 
   // Generate the object
   const reportObject = {
-    date: today.substr(0,10),
+    date: today.substr(0, 10),
     time: today,
-    reportValue: numberSubmitted
+    reportValue: numberSubmitted,
   };
   console.log({ reportObject });
 
@@ -301,10 +299,9 @@ const reportNumber = async (incomingPhoneNumber: string, incomingBodyLowercase: 
   // });
 
   // Write the report object
-  await userDocumentRef.doc(today.substr(0,10)).set(reportObject);
+  await userDocumentRef.doc(today.substr(0, 10)).set(reportObject);
   return `Reported ${numberSubmitted}`;
 };
-
 
 // ---------------------
 //   Utility Functions
@@ -424,7 +421,6 @@ const parseReportNumberFromBody = (incomingBody: string): number => {
   }
   return -1;
 };
-
 
 // Add my phone number for testing purposes and existing user
 const addMe = createNewUser(standardizePhoneNumber(env.twilio.mynumber), [standardizePhoneNumber('11234567890'), standardizePhoneNumber('01234567890')]);

@@ -22,6 +22,7 @@ module.exports = {
   rules: {
     "no-console": "off",
     "max-len": "off",
+    "radix": "off",
     "@typescript-eslint/no-unused-vars": "warn",
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/adjacent-overload-signatures": "error",
