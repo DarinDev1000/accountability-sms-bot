@@ -12,7 +12,11 @@
 
 // Now we can require index.js and save the exports inside a namespace called myFunctions.
 // const myFunctions = require('./index');
-import * as myFunctions from './index';
+// import * as myFunctions from './index';
+
+// To fix non exported functions
+const rewire = require('rewire');
+const myFunctions = rewire('./index');
 
 // Basic test
 describe('basicTest', () => {
@@ -34,6 +38,6 @@ describe('basicTest', () => {
 const helpCommand = myFunctions.__get__('helpCommand');
 describe('helpCommand', () => {
   test('should return default help', async () => {
-    expect(await helpCommand('help commands').typeof()).toBe('string');
+    expect(typeof await helpCommand('help commands')).toBe('string');
   });
 });
