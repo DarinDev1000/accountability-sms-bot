@@ -235,16 +235,6 @@ const changeFirstName = async (incomingPhoneNumber: string, incomingBody: string
 };
 
 /*
-  historyList = [
-    {
-      date: "2020-10-07T09:55:16.967Z",
-      reportValue: 7
-    },
-    {
-      date: "2020-10-06T09:55:16.967Z",
-      reportValue: 8
-    }
-  ]
   historyCollection = {
     "2020-10-07": {
       date: "2020-10-07",
@@ -333,17 +323,19 @@ const checkIfNewUser = async (incomingPhoneNumber: string): Promise<boolean> => 
   return isNewUser;
 };
 
-const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string> = [], history: Array<object> = []): Promise<admin.firestore.WriteResult> => {
+const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string> = [], history: Array<object> = []):Promise<admin.firestore.WriteResult> => {
   const newUserResults: admin.firestore.WriteResult = await db.collection('users').doc(incomingPhoneNumber).set({
     phoneNumber: incomingPhoneNumber,
     firstName: '',
     // dateCreated: new Date().toISOString().substr(0,10), // without time
     dateCreated: new Date().toISOString(),
     contacts,
-    history,
-    submittedToday: 'false',
-    smsDailyTime: '07:00',
   });
+  // const newUserResultsHistoryCollection: any = await db.collection('users').doc(incomingPhoneNumber).collection('historyCollection').doc('2020-10-05').set({
+  //   date: "2020-10-05",
+  //   time: "2020-10-05T12:06:53.659Z",
+  //   reportValue: 5
+  // });
   console.log('created user: ', incomingPhoneNumber, newUserResults.writeTime);
   return newUserResults;
 };
@@ -428,3 +420,24 @@ const parseReportNumberFromBody = (incomingBody: string): number => {
 
 // Add my phone number for testing purposes and existing user
 // const addMe = createNewUser(standardizePhoneNumber(env.twilio.mynumber), [standardizePhoneNumber('11234567890'), standardizePhoneNumber('01234567890')]);
+
+/* firebase firestore users collection example:
+  users: {                          // (collection)
+    "12345678901": {                  // (document)
+      phoneNumber: "12345678901",   // same as document id
+      contacts: [                   // currently just an array (May want to change this to a sub-collection like history)
+        "11234567890",
+        "10987654321"
+      ],
+      dateCreated: "2020-10-07T13:53:03.638Z",
+      firstName: "FirstName",
+      historyCollection: {          // (sub collection)
+        "2020-10-07": {             // (document)
+          date: "2020-10-07",
+          time: "2020-10-07T12:06:53.659Z",
+          reportValue: 7
+        }
+      }
+    }
+  }
+*/

@@ -26,3 +26,26 @@ This is an accountability sms bot for cell phones.
     - package.json        Package management file
 - firebase.json           Main firebase config file
 ```
+
+## Firebase Firestore users collection example
+
+```json
+users: {                                // (collection)
+    "12345678901": {                    // (document)
+        phoneNumber: "12345678901",     // same as document id
+        contacts: [                     // currently just an array (May want to change this to a sub-collection like history)
+            "11234567890",
+            "10987654321"
+        ],
+        dateCreated: "2020-10-07T13:53:03.638Z",
+        firstName: "FirstName",
+        historyCollection: {            // (sub collection)
+            "2020-10-07": {             // (document)
+                date: "2020-10-07",
+                time: "2020-10-07T12:06:53.659Z",
+                reportValue: 7
+            }
+        }
+    }
+}
+```
