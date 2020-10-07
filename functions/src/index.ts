@@ -84,7 +84,7 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
   // Check if new user
   const isNewUser = await checkIfNewUser(incomingPhoneNumber);
   if (isNewUser) {
-    responseMessage = 'Welcome to the Accountability Bot!\nTo see a list of commands, text "bot help"';
+    responseMessage = 'Welcome to the Accountability Bot!\nTo see a list of commands, text "help commands"';
   } else {
     // If existing user, check commands
     responseMessage = `Welcome back!\n${incomingBody}`; // Default If no command is matched
@@ -126,11 +126,11 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
 
   // Respond to message
   const twiml: MessagingResponseType = new MessagingResponse();
-  await twiml.message(responseMessage);
+  // Currently, make new line because of trial text
+  await twiml.message(`\n${responseMessage}`);
   console.log('response: ', twiml.toString());
   response.set({ 'Content-Type': 'text/xml' });
-  // Currently, make new line because of trial text
-  response.status(200).send(`\n${twiml.toString()}`);
+  response.status(200).send(twiml.toString());
 });
 
 // ---------------------
@@ -423,4 +423,4 @@ const parseReportNumberFromBody = (incomingBody: string): number => {
 };
 
 // Add my phone number for testing purposes and existing user
-const addMe = createNewUser(standardizePhoneNumber(env.twilio.mynumber), [standardizePhoneNumber('11234567890'), standardizePhoneNumber('01234567890')]);
+// const addMe = createNewUser(standardizePhoneNumber(env.twilio.mynumber), [standardizePhoneNumber('11234567890'), standardizePhoneNumber('01234567890')]);
