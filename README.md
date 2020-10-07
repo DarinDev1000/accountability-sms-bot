@@ -16,3 +16,13 @@ This is an accountability sms bot for cell phones.
 * "remove contact 1234567890"
 * "name \<your first name\>"
 * "report \<number\>"
+
+## Files
+
+```
+- functions/              Firebase Functions
+    - src/                This is where you write typescript code
+        - index.ts        Main typescript file
+    - package.json        Package management file
+- firebase.json           Main firebase config file
+```
