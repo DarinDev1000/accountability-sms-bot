@@ -1,5 +1,6 @@
 // ----- My Imports -----
 import { myEnv } from './env';
+import constants from './constants';
 // import * as admin from 'firebase-admin';
 // Chai is a commonly used library for creating unit test suites. It is easily extended with plugins.
 const chai = require('chai');
@@ -67,6 +68,22 @@ describe('Firebase Functions', () => {
     index.deleteUserDocument('testnumber3');
   });
 
+  describe('helloWorld', () => {
+    it('should be Hello From Firebase', async (done) => {
+      // A fake request object
+      const req = {};
+      const res = {
+        send: (testResponse: any) => {
+        //Run the test in response callback of the HTTPS function
+        expect(testResponse).to.be.equal("Hello from Firebase!");
+        //done() is to be triggered to finish the function
+        done();
+        }
+      };
+      await index.helloWorld(req,res);
+    });
+  });
+
   // describe('handleIncomingMessage', () => {
   //   it('should return', async (done) => {
   //     // A fake request object, with req.query.text set to 'input'
@@ -100,21 +117,27 @@ describe('Firebase Functions', () => {
 
   describe('helpCommand', () => {
     const helpCommand = index.__get__('helpCommand');
-    it('should return default help', async () => {
+    it('should return a string', async () => {
+      expect(typeof await helpCommand('help commands')).to.be.equal('string');
       return assert.typeOf(await helpCommand('help commands'), 'string');
     });
-    it('should return default help', async () => {
-      return assert.equal(await helpCommand('help commands'), `
-"help commands"
-"list contacts"
-"add contact 1234567890"
-"remove contact 1234567890"
-"name Paul"
-"report 10"
-"history"
-
-You can also look at detailed help for a command:
-"help <command name>"`);
+    it('should return default help text', async () => {
+      expect(await helpCommand('help commands')).to.be.equal(constants.help.helpCommands);
+    });
+    it('should return list contact help', async () => {
+      expect(await helpCommand('help list contacts')).to.be.equal(constants.help.helpListContact);
+    });
+    it('should return add contact help', async () => {
+      expect(await helpCommand('help add contact')).to.be.equal(constants.help.helpAddContact);
+    });
+    it('should return remove contact help', async () => {
+      expect(await helpCommand('help remove contact')).to.be.equal(constants.help.helpRemoveContact);
+    });
+    it('should return change name help', async () => {
+      expect(await helpCommand('help change name')).to.be.equal(constants.help.helpChangeName);
+    });
+    it('should return report help', async () => {
+      expect(await helpCommand('help report')).to.be.equal(constants.help.helpReportNumber);
     });
   });
 
@@ -130,8 +153,49 @@ You can also look at detailed help for a command:
     it('should have writeTime property', async () => {
       return assert.property(await createNewUser('testnumber3'), 'writeTime');
     });
+    xit('should not overwrite existing user', async () => {
+      await createNewUser('testnumber4');
+      return assert.notProperty(await createNewUser('testnumber4'), 'writeTime');
+    });
   });
-  
+
+  const standardizePhoneNumber = index.__get__('standardizePhoneNumber');
+  describe('standardizePhoneNumber', () => {
+    it('should return a string', async () => {
+      expect(typeof await standardizePhoneNumber('1234567890')).to.be.equal('string');
+    });
+    it('should return an empty string if invalid', async () => {
+      expect(await standardizePhoneNumber('4567890')).to.be.equal('');
+    });
+    it('should return an empty string if invalid', async () => {
+      expect(await standardizePhoneNumber('123')).to.be.equal('');
+    });
+    it('should return correctly formatted number', async () => {
+      expect(await standardizePhoneNumber('1234567890')).to.be.equal('11234567890');
+    });
+    it('should return correctly formatted number', async () => {
+      expect(await standardizePhoneNumber('11234567890')).to.be.equal('11234567890');
+    });
+    it('should return correctly formatted number', async () => {
+      expect(await standardizePhoneNumber('+11234567890')).to.be.equal('11234567890');
+    });
+    it('should return correctly formatted number', async () => {
+      expect(await standardizePhoneNumber('+161234567890')).to.be.equal('161234567890');
+    });
+  });
+
+  const parseNumberFromBody = index.__get__('parseNumberFromBody');
+  describe('parseNumberFromBody', () => {
+    it('should return a string', async () => {
+      expect(typeof await parseNumberFromBody('1234567890')).to.be.equal('string');
+    });
+    it('should return an empty string if invalid', async () => {
+      expect(await standardizePhoneNumber('4567890')).to.be.equal('');
+    });
+  });
+
+
+
   describe('last', () => {
     it('should exist', async () => {
       return true;
