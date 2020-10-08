@@ -14,6 +14,8 @@ try {
   console.log('Initialized firebase apps: ', admin.apps.length);
 } catch (error) {
   console.log('Initialized firebase apps: ', admin.apps.length);
+  // console.error('Error: ', error);
+  console.error('Error Info: ', error.errorInfo);
 }
 const db = admin.firestore();
 
