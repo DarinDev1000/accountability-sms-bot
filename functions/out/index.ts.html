@@ -1,7 +1,92 @@
-import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
 
-import constants from './constants';
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> index.ts</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    API Documentation
+                </a>
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Global</h3><ul><li><a href="global.html#handleIncomingMessage">handleIncomingMessage</a></li><li><a href="global.html#helpCommand">helpCommand</a></li><li><a href="global.html#listContactsCommand">listContactsCommand</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Source</p>
+                    <h1>index.ts</h1>
+                </header>
+                
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import * as admin from 'firebase-admin';
+import * as functions from 'firebase-functions';
 
 import MessagingResponseType = require('twilio/lib/twiml/MessagingResponse');
 
@@ -10,26 +95,17 @@ const twilio = require('twilio');
 
 const env = functions.config();
 
-// fix for running test
-try {
-  admin.initializeApp();
-  console.log('Initialized firebase apps: ', admin.apps.length);
-} catch (error) {
-  console.log('Initialized firebase apps: ', admin.apps.length);
-  // console.error('Error: ', error);
-  console.error('Error Info: ', error.errorInfo);
-}
+admin.initializeApp();
 const db = admin.firestore();
 
+// // Start writing Firebase Functions
+// // https://firebase.google.com/docs/functions/typescript
+//
 
-// ---------------------
-//   Main Functions
-// ---------------------
-
-export const helloWorld = functions.https.onRequest((request, response) => {
-  functions.logger.info("Hello logs!", {structuredData: true});
-  response.send("Hello from Firebase!");
-});
+// export const helloWorld = functions.https.onRequest((request, response) => {
+//   functions.logger.info("Hello logs!", {structuredData: true});
+//   response.send("Hello from Firebase!");
+// });
 
 // export const twilioTrial = functions.https.onRequest((request, response) => {
 //   functions.logger.info("twilioTrial", { structuredData: true });
@@ -114,15 +190,15 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
       functions.logger.info('command: hello');
       responseMessage = 'Hello to you too!';
     } else
-    if (incomingBodyLowercase.includes('list') && incomingBodyLowercase.includes('contact')) {
+    if (incomingBodyLowercase.includes('list') &amp;&amp; incomingBodyLowercase.includes('contact')) {
       functions.logger.info('command: list contacts');
       responseMessage = await listContactsCommand(incomingPhoneNumber);
     } else
-    if (incomingBodyLowercase.includes('add') && incomingBodyLowercase.includes('contact')) {
+    if (incomingBodyLowercase.includes('add') &amp;&amp; incomingBodyLowercase.includes('contact')) {
       functions.logger.info('command: add contact');
       responseMessage = await addContactCommand(incomingPhoneNumber, incomingBodyLowercase);
     } else
-    if (incomingBodyLowercase.includes('remove') && incomingBodyLowercase.includes('contact')) {
+    if (incomingBodyLowercase.includes('remove') &amp;&amp; incomingBodyLowercase.includes('contact')) {
       functions.logger.info('command: remove contact');
       responseMessage = await removeContactCommand(incomingPhoneNumber, incomingBodyLowercase);
     } else
@@ -146,8 +222,7 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
   await twiml.message(`\n${responseMessage}`);
   console.log('response: ', twiml.toString());
   response.set({ 'Content-Type': 'text/xml' });
-  response.status(200);
-  response.send(twiml.toString());
+  response.status(200).send(twiml.toString());
 });
 
 // ---------------------
@@ -157,21 +232,31 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
  * Handles help commands
  * @param {string} incomingBodyLowercase - The incoming sms body
  */
-const helpCommand = async (incomingBodyLowercase: string): Promise<string> => {
+const helpCommand = async (incomingBodyLowercase: string): Promise&lt;string> => {
   let helpMessage = 'Default Help Message';
   // Handle help commands
-  if (incomingBodyLowercase.includes('list') && incomingBodyLowercase.includes('contact')) {
-    helpMessage = constants.help.helpListContact;
-  } else if (incomingBodyLowercase.includes('add') && incomingBodyLowercase.includes('contact')) {
-    helpMessage = constants.help.helpAddContact;
-  } else if (incomingBodyLowercase.includes('remove') && incomingBodyLowercase.includes('contact')) {
-    helpMessage = constants.help.helpRemoveContact;
+  if (incomingBodyLowercase.includes('list') &amp;&amp; incomingBodyLowercase.includes('contact')) {
+    helpMessage = '"list contacts"  -  list your accountable contacts';
+  } else if (incomingBodyLowercase.includes('add') &amp;&amp; incomingBodyLowercase.includes('contact')) {
+    helpMessage = '"add contact &lt;phone number>"  -  add a contact';
+  } else if (incomingBodyLowercase.includes('remove') &amp;&amp; incomingBodyLowercase.includes('contact')) {
+    helpMessage = '"remove contact &lt;phone number>"  -  remove a contact';
   } else if (incomingBodyLowercase.includes('name')) {
-    helpMessage = constants.help.helpChangeName;
+    helpMessage = '"name &lt;your name>"  -  your first name for your contacts to see';
   } else if (incomingBodyLowercase.includes('report')) {
-    helpMessage = constants.help.helpReportNumber;
+    helpMessage = '"report &lt;number>"  -  how did you do since your last report? (number 1-10)\nOr just send the value only (Ex. "10") and that will report it!';
   } else {
-    helpMessage = constants.help.helpCommands;
+    helpMessage = `
+"help commands"
+"list contacts"
+"add contact 1234567890"
+"remove contact 1234567890"
+"name Paul"
+"report 10"
+"history"
+
+You can also look at detailed help for a command:
+"help &lt;command name>"`;
   }
   return helpMessage;
 };
@@ -180,9 +265,9 @@ const helpCommand = async (incomingBodyLowercase: string): Promise<string> => {
  * Return a list of contacts for the user
  * @param {string} incomingPhoneNumber - The incoming user number
  */
-const listContactsCommand = async (incomingPhoneNumber: string): Promise<string> => {
+const listContactsCommand = async (incomingPhoneNumber: string): Promise&lt;string> => {
   let contactString = 'Here is your contacts:';
-  // Create a reference to the user collection
+  // Create a reference to the cities collection
   const userDocument: admin.firestore.DocumentSnapshot = await db.collection('users').doc(incomingPhoneNumber).get();
   const contactList = await userDocument.get('contacts');
   await contactList.forEach((contactNumber: string) => {
@@ -193,15 +278,15 @@ const listContactsCommand = async (incomingPhoneNumber: string): Promise<string>
   return contactString;
 };
 
-const addContactCommand = async (incomingPhoneNumber: string, incomingBody: string): Promise<string> => {
+const addContactCommand = async (incomingPhoneNumber: string, incomingBody: string): Promise&lt;string> => {
   const contactNumberToAdd = await standardizePhoneNumber(incomingBody);
   console.log({ contactNumberToAdd });
-  if (contactNumberToAdd.length <= 9) {
+  if (contactNumberToAdd.length &lt;= 9) {
     return 'Did not find a number to add.\nAdd a number in this format:\n"add contact 1234567890"';
   }
   // Create a reference to the user document
   const userDocumentRef: admin.firestore.DocumentReference = await db.collection('users').doc(incomingPhoneNumber);
-  const contactList: Array<string> = await (await userDocumentRef.get()).get('contacts');
+  const contactList: Array&lt;string> = await (await userDocumentRef.get()).get('contacts');
   // Check if number exist in list
   if (contactList.includes(contactNumberToAdd)) {
     return `${contactNumberToAdd} is already in your contact list`;
@@ -213,15 +298,15 @@ const addContactCommand = async (incomingPhoneNumber: string, incomingBody: stri
   return `Added ${formatPhoneNumberFancy(contactNumberToAdd, true, true)} to your contact list`;
 };
 
-const removeContactCommand = async (incomingPhoneNumber: string, incomingBody: string): Promise<string> => {
+const removeContactCommand = async (incomingPhoneNumber: string, incomingBody: string): Promise&lt;string> => {
   const contactNumberToRemove = await standardizePhoneNumber(incomingBody);
   console.log({ contactNumberToRemove });
-  if (contactNumberToRemove.length <= 9) {
+  if (contactNumberToRemove.length &lt;= 9) {
     return 'Did not find a number to add.\nAdd a number in this format:\n"add contact 1234567890"';
   }
   // Create a reference to the user document
   const userDocumentRef: admin.firestore.DocumentReference = await db.collection('users').doc(incomingPhoneNumber);
-  const contactList: Array<string> = await (await userDocumentRef.get()).get('contacts');
+  const contactList: Array&lt;string> = await (await userDocumentRef.get()).get('contacts');
   // Check if number exist in list
   if (!contactList.includes(contactNumberToRemove)) {
     return `${contactNumberToRemove} is not on your contact list`;
@@ -236,10 +321,10 @@ const removeContactCommand = async (incomingPhoneNumber: string, incomingBody: s
   return `Removed ${formatPhoneNumberFancy(contactNumberToRemove, true, true)} from your contact list`;
 };
 
-const changeFirstName = async (incomingPhoneNumber: string, incomingBody: string): Promise<string> => {
+const changeFirstName = async (incomingPhoneNumber: string, incomingBody: string): Promise&lt;string> => {
   const firstName = await parseFirstNameFromBody(incomingBody);
   console.log({ firstName });
-  if (firstName.length < 2) {
+  if (firstName.length &lt; 2) {
     return 'Did not find a name.\nAdd a name in this format:\n"name Paul"';
   }
   // Create a reference to the user document
@@ -263,7 +348,7 @@ const changeFirstName = async (incomingPhoneNumber: string, incomingBody: string
     }
   }
 */
-const reportNumber = async (incomingPhoneNumber: string, incomingBodyLowercase: string, numberOnly: boolean = false): Promise<string> => {
+const reportNumber = async (incomingPhoneNumber: string, incomingBodyLowercase: string, numberOnly: boolean = false): Promise&lt;string> => {
   let numberSubmitted = -2;
   const today = new Date().toISOString();
   if (numberOnly) {
@@ -272,7 +357,7 @@ const reportNumber = async (incomingPhoneNumber: string, incomingBodyLowercase: 
     numberSubmitted = parseReportNumberFromBody(incomingBodyLowercase);
   }
   console.log({ numberSubmitted });
-  if (numberSubmitted <= 0) {
+  if (numberSubmitted &lt;= 0) {
     return 'Did not find a number to report.\nReport a number in this format:\n"report 8"\nor just the number\n"8"';
   }
 
@@ -280,7 +365,7 @@ const reportNumber = async (incomingPhoneNumber: string, incomingBodyLowercase: 
 
   // Create a reference to the user document
   const userDocumentRef: admin.firestore.CollectionReference = await db.collection('users').doc(incomingPhoneNumber).collection('historyCollection');
-  // const historyList: Array<{date: string, reportValue: number}> = await (await userDocumentRef.get()).get('history');
+  // const historyList: Array&lt;{date: string, reportValue: number}> = await (await userDocumentRef.get()).get('history');
 
   // This looks like it might only work for document queries. not within documents // Now it's a collection!
   // Unless I do sub-collections! Then the firebase queries might work
@@ -315,7 +400,7 @@ const reportNumber = async (incomingPhoneNumber: string, incomingBodyLowercase: 
 // ---------------------
 //   Utility Functions
 // ---------------------
-const checkIfNewUser = async (incomingPhoneNumber: string): Promise<boolean> => {
+const checkIfNewUser = async (incomingPhoneNumber: string): Promise&lt;boolean> => {
   // Default Existing User
   let isNewUser = false;
 
@@ -338,7 +423,7 @@ const checkIfNewUser = async (incomingPhoneNumber: string): Promise<boolean> => 
   return isNewUser;
 };
 
-const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string> = [], history: Array<object> = []): Promise<admin.firestore.WriteResult> => {
+const createNewUser = async (incomingPhoneNumber: string, contacts: Array&lt;string> = [], history: Array&lt;object> = []):Promise&lt;admin.firestore.WriteResult> => {
   const newUserResults: admin.firestore.WriteResult = await db.collection('users').doc(incomingPhoneNumber).set({
     phoneNumber: incomingPhoneNumber,
     firstName: '',
@@ -351,8 +436,7 @@ const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string
   //   time: "2020-10-05T12:06:53.659Z",
   //   reportValue: 5
   // });
-  console.log('created user: ', incomingPhoneNumber);
-  // console.log('created user: ', incomingPhoneNumber, newUserResults.writeTime);
+  console.log('created user: ', incomingPhoneNumber, newUserResults.writeTime);
   return newUserResults;
 };
 
@@ -391,7 +475,7 @@ const formatPhoneNumberFancy = (phoneNumber: string, country = true, plus = fals
 };
 
 const parseFirstNameFromBody = (incomingBody: string): string => {
-  const re = /(?<=^\s*name\s*)\w.*/gi;
+  const re = /(?&lt;=^\s*name\s*)\w.*/gi;
   const matchArray = re.exec(incomingBody);
   // console.log({incomingBody}, {matchArray});
   if (matchArray) {
@@ -402,7 +486,7 @@ const parseFirstNameFromBody = (incomingBody: string): string => {
 };
 
 const checkIfBodyOnlyNumber = (incomingBody: string): boolean => {
-  const re = /(?<=^\s*)(10)(?=\s*$)|(?<=^\s*)([123456789])(?=\s*$)/g;
+  const re = /(?&lt;=^\s*)(10)(?=\s*$)|(?&lt;=^\s*)([123456789])(?=\s*$)/g;
   const matchArray = re.exec(incomingBody);
   // console.log({incomingBody}, {matchArray});
   if (matchArray) {
@@ -413,7 +497,7 @@ const checkIfBodyOnlyNumber = (incomingBody: string): boolean => {
 };
 
 const getReportOnlyNumberFromBody = (incomingBody: string): number => {
-  const re = /(?<=^\s*)(10)(?=\s*$)|(?<=^\s*)([123456789])(?=\s*$)/g;
+  const re = /(?&lt;=^\s*)(10)(?=\s*$)|(?&lt;=^\s*)([123456789])(?=\s*$)/g;
   const matchArray = re.exec(incomingBody);
   // console.log({incomingBody}, {matchArray});
   if (matchArray) {
@@ -424,7 +508,7 @@ const getReportOnlyNumberFromBody = (incomingBody: string): number => {
 };
 
 const parseReportNumberFromBody = (incomingBody: string): number => {
-  const re = /(?<=^report\s*)10(?=\s*$)|(?<=^report\s*)[123456789](?=\s*$)/gi;
+  const re = /(?&lt;=^report\s*)10(?=\s*$)|(?&lt;=^report\s*)[123456789](?=\s*$)/gi;
   const matchArray = re.exec(incomingBody);
   // console.log({incomingBody}, {matchArray});
   if (matchArray) {
@@ -432,14 +516,6 @@ const parseReportNumberFromBody = (incomingBody: string): number => {
     return parseInt(matchArray[0]);
   }
   return -1;
-};
-
-export const deleteUserDocument = async (documentId: string): Promise<object> => {
-  const response: any = await db.collection('users').doc(documentId).delete();
-  return {
-    documentId,
-    response
-  };
 };
 
 // Add my phone number for testing purposes and existing user
@@ -465,3 +541,32 @@ export const deleteUserDocument = async (documentId: string): Promise<object> =>
     }
   }
 */
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+</body>
+</html>

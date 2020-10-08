@@ -2,6 +2,9 @@
 **/*.js
 **/*.js.map
 
+# Include jsdoc scripts
+!out/**/*.js
+
 # Except the ESLint config file
 !.eslintrc.js
 
