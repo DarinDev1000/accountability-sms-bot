@@ -1,5 +1,6 @@
 // ----- My Imports -----
 import { myEnv } from './env';
+// import * as admin from 'firebase-admin';
 // Chai is a commonly used library for creating unit test suites. It is easily extended with plugins.
 const chai = require('chai');
 const assert = chai.assert;
@@ -32,7 +33,7 @@ const functionsTest = firebaseTest({
 */
 // So we can Mock functions config values
 functionsTest.mockConfig({ twilio: { mynumber: '+11234567890' }});
-// functionsTest.mockConfig(myEnv); // Should I use teh actual keys?
+// functionsTest.mockConfig(myEnv); // Should I use the actual keys?
 
 // // ----- If in offline mode, stub admin.initializeApp(); -----
 // // This is so `admin.initializeApp()` runs correctly
@@ -49,29 +50,65 @@ functionsTest.mockConfig({ twilio: { mynumber: '+11234567890' }});
 const index = rewire('./index'); // This allow me to not have to export functions
 
 
-// Basic test
-describe('basicTest', () => {
-  it('should be 6', () => {
-    return assert.equal(index.basicTest(), 6);
-  });
-});
+describe('Firebase Functions', () => {
 
-// describe('handleIncomingMessage', () => {
-//   it('should be 6', async () => {
-//     // "Wrap" the basicTest function from index.js
-//     const wrapped = functionsTest.wrap(index.handleIncomingMessage);
-//     return assert.equal(wrapped(), true);
-//     // return assert.equal(await handleIncomingMessage("{IncomingMessage: {body: { Body: 'the body'}}}"), 'output')
-//   });
-// });
-
-describe('helpCommand', () => {
-  const helpCommand = index.__get__('helpCommand');
-  it('should return default help', async () => {
-    return assert.typeOf(await helpCommand('help commands'), 'string');
+  before(() => {
+    // Stuff to run before
+    // const db = admin.firestore();
   });
-  it('should return default help', async () => {
-    return assert.equal(await helpCommand('help commands'), `
+
+  after(() => {
+    // Do cleanup tasks.
+    functionsTest.cleanup();
+    // Reset the database. // don't accidentally delete the prod database
+    // const newUserResults: admin.firestore.WriteResult = await db.collection('users')
+  });
+  
+  // Basic test
+  describe('basicTest', () => {
+    it('should be 6', () => {
+      return assert.equal(index.basicTest(), 6);
+    });
+  });
+
+  // describe('handleIncomingMessage', () => {
+  //   it('should return', async (done) => {
+  //     // A fake request object, with req.query.text set to 'input'
+  //     const req = {
+  //         body: {
+  //           Body: 'the body',
+  //           From: '+11234567890'
+  //         }
+  //     };
+  //     // A fake response object, with a stubbed redirect function which asserts that it is called
+  //     // with parameters 303, 'new_ref'.
+  //     const res = {
+  //       redirect: (code: any, url: any) => {
+  //         assert.equal(code, 303);
+  //         assert.equal(url, 'new_ref');
+  //         done();
+  //       },
+  //       send: (code: any, url: any) => {
+  //         assert.equal(code, 303);
+  //         assert.equal(url, 'new_ref');
+  //         done();
+  //       },
+  //       set: () => {}
+  //     };
+
+  //     // Invoke handleIncomingMessage with our fake request and response objects. This will cause the
+  //     // assertions in the response object to be evaluated.
+  //     index.handleIncomingMessage(req, res);
+  //   });
+  // });
+
+  describe('helpCommand', () => {
+    const helpCommand = index.__get__('helpCommand');
+    it('should return default help', async () => {
+      return assert.typeOf(await helpCommand('help commands'), 'string');
+    });
+    it('should return default help', async () => {
+      return assert.equal(await helpCommand('help commands'), `
 "help commands"
 "list contacts"
 "add contact 1234567890"
@@ -82,20 +119,22 @@ describe('helpCommand', () => {
 
 You can also look at detailed help for a command:
 "help <command name>"`);
+    });
   });
-});
 
-describe('createNewUser', () => {
-  const createNewUser = index.__get__('createNewUser');
-  it('should exist', async () => {
-    // return assert.isOk(await createNewUser('+11234567890'));
-    return expect(await createNewUser('testnumber')).to.exist;
+  describe('createNewUser', () => {
+    const createNewUser = index.__get__('createNewUser');
+    it('should exist', async () => {
+      // return assert.isOk(await createNewUser('+11234567890'));
+      return expect(await createNewUser('testnumber')).to.exist;
+    });
+    it('should return object', async () => {
+      return assert.isObject(await createNewUser('testnumber'));
+      // return expect(await createNewUser('+11234567890')).to.exist;
+    });
+    it('should have writeTime property', async () => {
+      return assert.property(await createNewUser('testnumber'), 'writeTime');
+    });
   });
-  it('should return object', async () => {
-    return assert.isObject(await createNewUser('testnumber'));
-    // return expect(await createNewUser('+11234567890')).to.exist;
-  });
-  it('should have writeTime property', async () => {
-    return assert.property(await createNewUser('testnumber'), 'writeTime');
-  });
+
 });
