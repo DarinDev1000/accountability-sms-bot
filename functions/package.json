@@ -9,7 +9,8 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "test": "mocha --reporter spec --timeout 4000 lib/",
-    "docs": "jsdoc -c jsdoc.json src/"
+    "docs": "jsdoc -c jsdoc.json src/",
+    "watch": "tsc --watch"
   },
   "engines": {
     "node": "10"
