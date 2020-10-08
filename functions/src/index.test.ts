@@ -175,16 +175,19 @@ describe('Firebase Functions', () => {
     it('should have writeTime property', async () => {
       return assert.property(await createNewUser('testnumber3'), 'writeTime');
     });
-    xit('should not overwrite existing user', async () => {
-      await createNewUser('testnumber4');
-      return assert.notProperty(await createNewUser('testnumber4'), 'writeTime');
-    });
     it('should create user in firestore', async () => {
       const incomingPhoneNumber = 'testnumber5';
       await createNewUser(incomingPhoneNumber);
       const newDocument: admin.firestore.DocumentSnapshot = await db.collection('users').doc(incomingPhoneNumber).get();
       const newDocumentId = newDocument.id;
       return assert.equal(newDocumentId, incomingPhoneNumber);
+    });
+    it('should create phoneNumber field', async () => {
+      const incomingPhoneNumber = 'testnumber5';
+      await createNewUser(incomingPhoneNumber);
+      const newDocument: admin.firestore.DocumentSnapshot = await db.collection('users').doc(incomingPhoneNumber).get();
+      const newPhoneNumber = newDocument.get('phoneNumber');
+      return assert.equal(newPhoneNumber, incomingPhoneNumber);
     });
   });
 
