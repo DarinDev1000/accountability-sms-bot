@@ -32,13 +32,13 @@ const env = functions.config();
 const adminInitStub = sinon.stub(admin, 'initializeApp');
 
 // Now we can require index.js and save the exports inside a namespace called myFunctions.
-const myFunctions = require('./index'); // Replacing this with rewire for non exported functions
-// const myFunctions = rewire('./index.js'); // This allow me to not have to export functions
+const index = require('./index'); // Replacing this with rewire for non exported functions
+// const index = rewire('./index.js'); // This allow me to not have to export functions
 
 // Basic test
 describe('basicTest', () => {
   it('should be 6', () => {
-    return assert.equal(myFunctions.basicTest(), 6);
+    return assert.equal(index.basicTest(), 6);
   });
 });
 
