@@ -20,6 +20,7 @@ module.exports = {
     "import",
   ],
   rules: {
+    "no-multiple-empty-lines": "off",
     "no-console": "off",
     "max-len": "off",
     "radix": "off",
@@ -37,6 +38,8 @@ module.exports = {
     "comma-dangle": "warn",
     "constructor-super": "error",
     eqeqeq: ["warn", "always"],
+    "import/first": "warn",
+    "import/order": "warn",
     "import/prefer-default-export": "off",
     "import/no-deprecated": "warn",
     "import/no-extraneous-dependencies": "error",

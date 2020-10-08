@@ -1,24 +1,32 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-
 import MessagingResponseType = require('twilio/lib/twiml/MessagingResponse');
+import constants from './constants';
 
 const { MessagingResponse } = require('twilio').twiml;
 const twilio = require('twilio');
 
 const env = functions.config();
 
-admin.initializeApp();
+// fix for running test
+try {
+  admin.initializeApp();
+  console.log('Initialized firebase apps: ', admin.apps.length);
+} catch (error) {
+  console.log('Initialized firebase apps: ', admin.apps.length);
+  // console.error('Error: ', error);
+  console.error('Error Info: ', error.errorInfo);
+}
 const db = admin.firestore();
 
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
+// ---------------------
+//   Main Functions
+// ---------------------
 
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+export const helloWorld = functions.https.onRequest((request, response) => {
+  functions.logger.info('Hello logs!', { structuredData: true });
+  response.send('Hello from Firebase!');
+});
 
 // export const twilioTrial = functions.https.onRequest((request, response) => {
 //   functions.logger.info("twilioTrial", { structuredData: true });
@@ -135,7 +143,8 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
   await twiml.message(`\n${responseMessage}`);
   console.log('response: ', twiml.toString());
   response.set({ 'Content-Type': 'text/xml' });
-  response.status(200).send(twiml.toString());
+  response.status(200);
+  response.send(twiml.toString());
 });
 
 // ---------------------
@@ -149,27 +158,17 @@ const helpCommand = async (incomingBodyLowercase: string): Promise<string> => {
   let helpMessage = 'Default Help Message';
   // Handle help commands
   if (incomingBodyLowercase.includes('list') && incomingBodyLowercase.includes('contact')) {
-    helpMessage = '"list contacts"  -  list your accountable contacts';
+    helpMessage = constants.help.helpListContact;
   } else if (incomingBodyLowercase.includes('add') && incomingBodyLowercase.includes('contact')) {
-    helpMessage = '"add contact <phone number>"  -  add a contact';
+    helpMessage = constants.help.helpAddContact;
   } else if (incomingBodyLowercase.includes('remove') && incomingBodyLowercase.includes('contact')) {
-    helpMessage = '"remove contact <phone number>"  -  remove a contact';
+    helpMessage = constants.help.helpRemoveContact;
   } else if (incomingBodyLowercase.includes('name')) {
-    helpMessage = '"name <your name>"  -  your first name for your contacts to see';
+    helpMessage = constants.help.helpChangeName;
   } else if (incomingBodyLowercase.includes('report')) {
-    helpMessage = '"report <number>"  -  how did you do since your last report? (number 1-10)\nOr just send the value only (Ex. "10") and that will report it!';
+    helpMessage = constants.help.helpReportNumber;
   } else {
-    helpMessage = `
-"help commands"
-"list contacts"
-"add contact 1234567890"
-"remove contact 1234567890"
-"name Paul"
-"report 10"
-"history"
-
-You can also look at detailed help for a command:
-"help <command name>"`;
+    helpMessage = constants.help.helpCommands;
   }
   return helpMessage;
 };
@@ -180,7 +179,7 @@ You can also look at detailed help for a command:
  */
 const listContactsCommand = async (incomingPhoneNumber: string): Promise<string> => {
   let contactString = 'Here is your contacts:';
-  // Create a reference to the cities collection
+  // Create a reference to the user collection
   const userDocument: admin.firestore.DocumentSnapshot = await db.collection('users').doc(incomingPhoneNumber).get();
   const contactList = await userDocument.get('contacts');
   await contactList.forEach((contactNumber: string) => {
@@ -336,7 +335,7 @@ const checkIfNewUser = async (incomingPhoneNumber: string): Promise<boolean> => 
   return isNewUser;
 };
 
-const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string> = [], history: Array<object> = []):Promise<admin.firestore.WriteResult> => {
+const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string> = [], history: Array<object> = []): Promise<admin.firestore.WriteResult> => {
   const newUserResults: admin.firestore.WriteResult = await db.collection('users').doc(incomingPhoneNumber).set({
     phoneNumber: incomingPhoneNumber,
     firstName: '',
@@ -349,7 +348,8 @@ const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string
   //   time: "2020-10-05T12:06:53.659Z",
   //   reportValue: 5
   // });
-  console.log('created user: ', incomingPhoneNumber, newUserResults.writeTime);
+  console.log('created user: ', incomingPhoneNumber);
+  // console.log('created user: ', incomingPhoneNumber, newUserResults.writeTime);
   return newUserResults;
 };
 
@@ -429,6 +429,14 @@ const parseReportNumberFromBody = (incomingBody: string): number => {
     return parseInt(matchArray[0]);
   }
   return -1;
+};
+
+export const deleteUserDocument = async (documentId: string): Promise<object> => {
+  const response: any = await db.collection('users').doc(documentId).delete();
+  return {
+    documentId,
+    response,
+  };
 };
 
 // Add my phone number for testing purposes and existing user
