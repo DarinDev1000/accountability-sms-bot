@@ -141,7 +141,8 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
   await twiml.message(`\n${responseMessage}`);
   console.log('response: ', twiml.toString());
   response.set({ 'Content-Type': 'text/xml' });
-  response.status(200).send(twiml.toString());
+  response.status(200);
+  response.send(twiml.toString());
 });
 
 // ---------------------

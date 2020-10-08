@@ -62,10 +62,13 @@ describe('Firebase Functions', () => {
     // Do cleanup tasks.
     await functionsTest.cleanup();
     // Reset the database. // don't accidentally delete the prod database
+    index.deleteUserDocument('11234567890');
+    index.deleteUserDocument('11234567891');
     // index.deleteUserDocument('testnumber');
     index.deleteUserDocument('testnumber1');
     index.deleteUserDocument('testnumber2');
     index.deleteUserDocument('testnumber3');
+    index.deleteUserDocument('testnumber4');
   });
 
   describe('helloWorld', () => {
@@ -84,36 +87,52 @@ describe('Firebase Functions', () => {
     });
   });
 
-  // describe('handleIncomingMessage', () => {
-  //   it('should return', async (done) => {
-  //     // A fake request object, with req.query.text set to 'input'
-  //     const req = {
-  //         body: {
-  //           Body: 'the body',
-  //           From: '+11234567890'
-  //         }
-  //     };
-  //     // A fake response object, with a stubbed redirect function which asserts that it is called
-  //     // with parameters 303, 'new_ref'.
-  //     const res = {
-  //       redirect: (code: any, url: any) => {
-  //         assert.equal(code, 303);
-  //         assert.equal(url, 'new_ref');
-  //         done();
-  //       },
-  //       send: (code: any, url: any) => {
-  //         assert.equal(code, 303);
-  //         assert.equal(url, 'new_ref');
-  //         done();
-  //       },
-  //       set: () => {}
-  //     };
-
-  //     // Invoke handleIncomingMessage with our fake request and response objects. This will cause the
-  //     // assertions in the response object to be evaluated.
-  //     index.handleIncomingMessage(req, res);
-  //   });
-  // });
+  describe('handleIncomingMessage', () => {
+    it('should return status 200', async () => {
+      // A fake request object, with req.query.text set to 'input'
+      const req = {
+          body: {
+            Body: 'test body',
+            From: '+11234567890'
+          }
+      };
+      // A fake response object, with a stubbed send function which asserts that it is called
+      const res = {
+        set: () => {},
+        status: (statusCode: number) => {
+          expect(statusCode).to.be.equal(200);
+        },
+        send: (testResponse: any) => {}
+      };
+      // Invoke handleIncomingMessage with our fake request and response objects. This will cause the
+      // assertions in the response object to be evaluated.
+      await index.handleIncomingMessage(req, res);
+    });
+    it('should return new user response', async () => {
+      const req = { body: { Body: 'test body', From: '+11234567891'}};
+      const res = {
+        set: () => {},
+        status: (statusCode: number) => {},
+        send: (testResponse: any) => {
+          //Run the test in response callback of the HTTPS function
+          expect(testResponse).to.be.equal('<?xml version="1.0" encoding="UTF-8"?><Response><Message>\nWelcome to the Accountability Bot!\nTo see a list of commands, text "help commands"</Message></Response>');
+        }
+      };
+      await index.handleIncomingMessage(req, res);
+    });
+    it('should return existing user response', async () => {
+      const req = { body: { Body: 'test body', From: '+11234567891'}};
+      const res = {
+        set: () => {},
+        status: (statusCode: number) => {},
+        send: (testResponse: any) => {
+          //Run the test in response callback of the HTTPS function
+          expect(testResponse).to.be.equal('<?xml version="1.0" encoding="UTF-8"?><Response><Message>\nWelcome back!\ntest body</Message></Response>');
+        }
+      };
+      await index.handleIncomingMessage(req, res);
+    });
+  });
 
   describe('helpCommand', () => {
     const helpCommand = index.__get__('helpCommand');
