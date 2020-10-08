@@ -57,18 +57,14 @@ describe('Firebase Functions', () => {
     // const db = admin.firestore();
   });
 
-  after(() => {
+  after(async () => {
     // Do cleanup tasks.
-    functionsTest.cleanup();
+    await functionsTest.cleanup();
     // Reset the database. // don't accidentally delete the prod database
-    // const newUserResults: admin.firestore.WriteResult = await db.collection('users')
-  });
-  
-  // Basic test
-  describe('basicTest', () => {
-    it('should be 6', () => {
-      return assert.equal(index.basicTest(), 6);
-    });
+    // index.deleteUserDocument('testnumber');
+    index.deleteUserDocument('testnumber1');
+    index.deleteUserDocument('testnumber2');
+    index.deleteUserDocument('testnumber3');
   });
 
   // describe('handleIncomingMessage', () => {
@@ -125,15 +121,20 @@ You can also look at detailed help for a command:
   describe('createNewUser', () => {
     const createNewUser = index.__get__('createNewUser');
     it('should exist', async () => {
-      // return assert.isOk(await createNewUser('+11234567890'));
-      return expect(await createNewUser('testnumber')).to.exist;
+      return assert.isOk(await createNewUser('testnumber1'));
+      // return expect(await createNewUser('testnumber1')).to.exist;
     });
     it('should return object', async () => {
-      return assert.isObject(await createNewUser('testnumber'));
-      // return expect(await createNewUser('+11234567890')).to.exist;
+      return assert.isObject(await createNewUser('testnumber2'));
     });
     it('should have writeTime property', async () => {
-      return assert.property(await createNewUser('testnumber'), 'writeTime');
+      return assert.property(await createNewUser('testnumber3'), 'writeTime');
+    });
+  });
+  
+  describe('last', () => {
+    it('should exist', async () => {
+      return true;
     });
   });
 

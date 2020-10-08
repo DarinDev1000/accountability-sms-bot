@@ -19,14 +19,6 @@ try {
 }
 const db = admin.firestore();
 
-
-exports.basicTest = function(){
-  const a = 1;
-  const b = 5;
-  return a + b;
-}
-
-
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
 //
@@ -432,6 +424,14 @@ const parseReportNumberFromBody = (incomingBody: string): number => {
     return parseInt(matchArray[0]);
   }
   return -1;
+};
+
+export const deleteUserDocument = async (documentId: string): Promise<object> => {
+  const response: any = await db.collection('users').doc(documentId).delete();
+  return {
+    documentId,
+    response
+  };
 };
 
 // Add my phone number for testing purposes and existing user
