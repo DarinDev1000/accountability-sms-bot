@@ -339,7 +339,7 @@ const checkIfNewUser = async (incomingPhoneNumber: string): Promise<boolean> => 
   return isNewUser;
 };
 
-const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string> = [], history: Array<object> = []):Promise<admin.firestore.WriteResult> => {
+const createNewUser = async (incomingPhoneNumber: string, contacts: Array<string> = [], history: Array<object> = []): Promise<admin.firestore.WriteResult> => {
   const newUserResults: admin.firestore.WriteResult = await db.collection('users').doc(incomingPhoneNumber).set({
     phoneNumber: incomingPhoneNumber,
     firstName: '',

@@ -3,18 +3,21 @@ import { myEnv } from './env';
 // Chai is a commonly used library for creating unit test suites. It is easily extended with plugins.
 const chai = require('chai');
 const assert = chai.assert;
+const expect = chai.expect;
 // Sinon is a library used for mocking or verifying function calls in JavaScript.
 const sinon = require('sinon');
 // For not exported functions
 const rewire = require('rewire');
 
+
 // ----- Online version setup -----
-const functionsTest = require('firebase-functions-test')({
-  databaseURL: 'https://my-project.firebaseio.com',
-  storageBucket: 'my-project.appspot.com',
-  projectId: 'my-project',
+import firebaseTest = require('firebase-functions-test');
+
+const functionsTest = firebaseTest({
+  databaseURL: 'http://localhost:5013',
+  projectId: 'accountability-sms-bot',
 }, './accountability-sms-bot-f844e687d875.json');
-// const functionsTest = require('firebase-functions-test')(
+// const functionsTest = firebaseTest(
 //   myEnv.firebaseConfig, 
 //   './accountability-sms-bot-f844e687d875.json'
 // );
@@ -55,12 +58,11 @@ describe('basicTest', () => {
 });
 
 // describe('handleIncomingMessage', () => {
-//   const handleIncomingMessage = index.__get__('handleIncomingMessage');
 //   it('should be 6', async () => {
 //     // "Wrap" the basicTest function from index.js
-//     // const wrapped = test.wrap(index.handleIncomingMessage);
-//     // return assert.equal(wrapped(), true);
-//     return assert.equal(await handleIncomingMessage("{IncomingMessage: {body: { Body: 'the body'}}}"), 'output')
+//     const wrapped = functionsTest.wrap(index.handleIncomingMessage);
+//     return assert.equal(wrapped(), true);
+//     // return assert.equal(await handleIncomingMessage("{IncomingMessage: {body: { Body: 'the body'}}}"), 'output')
 //   });
 // });
 
@@ -68,5 +70,33 @@ describe('helpCommand', () => {
   const helpCommand = index.__get__('helpCommand');
   it('should return default help', async () => {
     return assert.typeOf(await helpCommand('help commands'), 'string');
+  });
+  it('should return default help', async () => {
+    return assert.equal(await helpCommand('help commands'), `
+"help commands"
+"list contacts"
+"add contact 1234567890"
+"remove contact 1234567890"
+"name Paul"
+"report 10"
+"history"
+
+You can also look at detailed help for a command:
+"help <command name>"`);
+  });
+});
+
+describe('createNewUser', () => {
+  const createNewUser = index.__get__('createNewUser');
+  it('should exist', async () => {
+    // return assert.isOk(await createNewUser('+11234567890'));
+    return expect(await createNewUser('testnumber')).to.exist;
+  });
+  it('should return object', async () => {
+    return assert.isObject(await createNewUser('testnumber'));
+    // return expect(await createNewUser('+11234567890')).to.exist;
+  });
+  it('should have writeTime property', async () => {
+    return assert.property(await createNewUser('testnumber'), 'writeTime');
   });
 });
