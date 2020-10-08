@@ -38,7 +38,7 @@ afterAll(() =>{
 });
 
 describe('helloWorld', () => {
-  it('should be Hello From Firebase', async (done) => {
+  test('should be Hello From Firebase', async (done) => {
     // A fake request object
     const req = {};
     const res = {
@@ -49,27 +49,27 @@ describe('helloWorld', () => {
       done();
       }
     };
-    index.helloWorld(req,res);
+    await index.helloWorld(req,res);
   });
 });
 
-describe('handleIncomingMessage', () => {
-  it('should return something', async (done) => {
-    // A fake request object
-    const req = {body: { Body: 'the body', "From": "+12093419681",}};
-    const res = {
-      set: (myheader: any) => {},
-      status: (mystatus: any) => {return {send: (mysend: any) => {}}},
-      send: (testResponse: any) => {
-      //Run the test in response callback of the HTTPS function
-      expect(testResponse).toBeCalled();
-      //done() is to be triggered to finish the function
-      done();
-      }
-    };
-    await index.handleIncomingMessage(req,res);
-  });
-});
+// describe('handleIncomingMessage', () => {
+//   test('should be called', async (done) => {
+//     // A fake request object
+//     const req = {body: { Body: 'the body', "From": "+12093419681",}};
+//     const res = {
+//       set: jest.fn(),
+//       status: (mystatus: any) => {return {send: jest.fn()}},
+//       send: (testResponse: any) => {
+//       //Run the test in response callback of the HTTPS function
+//       expect(testResponse).toBeCalled();
+//       //done() is to be triggered to finish the function
+//       done();
+//       }
+//     };
+//     await index.handleIncomingMessage(req,res);
+//   });
+// });
 
 // const handleIncomingMessage = index.__get__('handleIncomingMessage');
 // describe('handleIncomingMessage', () => {
