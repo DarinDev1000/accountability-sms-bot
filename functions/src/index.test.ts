@@ -14,12 +14,11 @@ const rewire = require('rewire');
 import firebaseTest = require('firebase-functions-test');
 
 const functionsTest = firebaseTest({
-  databaseURL: 'http://localhost:5013',
-  projectId: 'accountability-sms-bot',
-}, './accountability-sms-bot-f844e687d875.json');
+  projectId: 'accountability-sms-bot-test',
+}, './accountability-sms-bot-test-firebase-adminsdk-bepel-ab6b2ae9f4.json');
 // const functionsTest = firebaseTest(
 //   myEnv.firebaseConfig, 
-//   './accountability-sms-bot-f844e687d875.json'
+//   './accountability-sms-bot-test-firebase-adminsdk-bepel-ab6b2ae9f4.json'
 // );
 
 // ----- Offline mode setup -----
