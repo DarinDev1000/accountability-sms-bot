@@ -8,7 +8,13 @@ const twilio = require('twilio');
 
 const env = functions.config();
 
-admin.initializeApp();
+// fix for running test
+try {
+  admin.initializeApp();
+  console.log('Initialized firebase apps: ', admin.apps.length);
+} catch (error) {
+  console.log('Initialized firebase apps: ', admin.apps.length);
+}
 const db = admin.firestore();
 
 

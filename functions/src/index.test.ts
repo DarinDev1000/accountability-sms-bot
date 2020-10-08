@@ -1,10 +1,5 @@
-// // Online version setup
-// const firebaseTest = require('firebase-functions-test')({
-//   databaseURL: 'https://my-project.firebaseio.com',
-//   storageBucket: 'my-project.appspot.com',
-//   projectId: 'my-project',
-// }, 'path/to/serviceAccountKey.json');
-
+// ----- My Imports -----
+import { myEnv } from './env';
 // Chai is a commonly used library for creating unit test suites. It is easily extended with plugins.
 const chai = require('chai');
 const assert = chai.assert;
@@ -13,26 +8,44 @@ const sinon = require('sinon');
 // For not exported functions
 const rewire = require('rewire');
 
-// Require firebase-admin so we can stub out some of its methods.
-const admin = require('firebase-admin');
-// At the top of test/index.test.js
-// const firebaseTest = require('firebase-functions-test')();
+// ----- Online version setup -----
+const functionsTest = require('firebase-functions-test')({
+  databaseURL: 'https://my-project.firebaseio.com',
+  storageBucket: 'my-project.appspot.com',
+  projectId: 'my-project',
+}, './accountability-sms-bot-f844e687d875.json');
+// const functionsTest = require('firebase-functions-test')(
+//   myEnv.firebaseConfig, 
+//   './accountability-sms-bot-f844e687d875.json'
+// );
 
-const functions = require('firebase-functions');
-const env = functions.config();
+// ----- Offline mode setup -----
+// const functionsTest = require('firebase-functions-test')();
 
-// Mock functions config values
-// firebaseTest.mockConfig({ twilio: { mynumber: '+11234567890' }});
 
-// If index.js calls admin.initializeApp at the top of the file,
-// we need to stub it out before requiring index.js. This is because the
-// functions will be executed as a part of the require process.
-// Here we stub admin.initializeApp to be a dummy function that doesn't do anything.
-const adminInitStub = sinon.stub(admin, 'initializeApp');
+// ----- Mocking config values -----
+// index contains this code:
+/*
+  const env = functions.config();
+*/
+// So we can Mock functions config values
+functionsTest.mockConfig({ twilio: { mynumber: '+11234567890' }});
+// functionsTest.mockConfig(myEnv); // Should I use teh actual keys?
 
+// // ----- If in offline mode, stub admin.initializeApp(); -----
+// // This is so `admin.initializeApp()` runs correctly
+// const admin = require('firebase-admin');
+// // If index.js calls admin.initializeApp at the top of the file,
+// // we need to stub it out before requiring index.js. This is because the
+// // functions will be executed as a part of the require process.
+// // Here we stub admin.initializeApp to be a dummy function that doesn't do anything.
+// const adminInitStub = sinon.stub(admin, 'initializeApp');
+
+// ----- Importing your functions -----
 // Now we can require index.js and save the exports inside a namespace called myFunctions.
 // const index = require('./index'); // Replacing this with rewire for non exported functions
 const index = rewire('./index'); // This allow me to not have to export functions
+
 
 // Basic test
 describe('basicTest', () => {
