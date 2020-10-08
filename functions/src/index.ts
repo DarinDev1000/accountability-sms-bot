@@ -63,6 +63,11 @@ const db = admin.firestore();
 //   response.send("logging");
 // });
 
+/**
+ * Handles incoming messages
+ * @param {Request} request - The request object
+ * @param {Response} response - The response object
+ */
 export const handleIncomingMessage = functions.https.onRequest(async (request, response) => {
   functions.logger.info('handleIncomingMessage', { structuredData: true });
   // console.log(request.body);
@@ -136,6 +141,10 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
 // ---------------------
 //   Command Functions
 // ---------------------
+/**
+ * Handles help commands
+ * @param {string} incomingBodyLowercase - The incoming sms body
+ */
 const helpCommand = async (incomingBodyLowercase: string): Promise<string> => {
   let helpMessage = 'Default Help Message';
   // Handle help commands
@@ -165,6 +174,10 @@ You can also look at detailed help for a command:
   return helpMessage;
 };
 
+/**
+ * Return a list of contacts for the user
+ * @param {string} incomingPhoneNumber - The incoming user number
+ */
 const listContactsCommand = async (incomingPhoneNumber: string): Promise<string> => {
   let contactString = 'Here is your contacts:';
   // Create a reference to the cities collection
