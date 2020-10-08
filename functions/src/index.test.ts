@@ -1,9 +1,9 @@
-import { env } from './env';
+import { myEnv } from './env';
 
 // Require firebase-admin so we can stub out some of its methods.
 const admin = require('firebase-admin');
 const firebaseTest = require('firebase-functions-test')(
-  env.firebaseConfig,
+  myEnv.firebaseConfig,
   {"project_id": "accountability-sms-bot"},
   '../accountability-sms-bot-f844e687d875.json'
 );
