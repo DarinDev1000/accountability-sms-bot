@@ -1,9 +1,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-
-import constants from './constants';
-
 import MessagingResponseType = require('twilio/lib/twiml/MessagingResponse');
+import constants from './constants';
 
 const { MessagingResponse } = require('twilio').twiml;
 const twilio = require('twilio');
@@ -21,14 +19,13 @@ try {
 }
 const db = admin.firestore();
 
-
 // ---------------------
 //   Main Functions
 // ---------------------
 
 export const helloWorld = functions.https.onRequest((request, response) => {
-  functions.logger.info("Hello logs!", {structuredData: true});
-  response.send("Hello from Firebase!");
+  functions.logger.info('Hello logs!', { structuredData: true });
+  response.send('Hello from Firebase!');
 });
 
 // export const twilioTrial = functions.https.onRequest((request, response) => {
@@ -438,7 +435,7 @@ export const deleteUserDocument = async (documentId: string): Promise<object> =>
   const response: any = await db.collection('users').doc(documentId).delete();
   return {
     documentId,
-    response
+    response,
   };
 };
 

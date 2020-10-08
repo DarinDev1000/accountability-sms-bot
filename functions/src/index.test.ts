@@ -1,11 +1,11 @@
 // ----- My Imports -----
+import * as admin from 'firebase-admin';
 import { myEnv } from './env';
 import constants from './constants';
-import * as admin from 'firebase-admin';
 // Chai is a commonly used library for creating unit test suites. It is easily extended with plugins.
 const chai = require('chai');
-const assert = chai.assert;
-const expect = chai.expect;
+const { assert, expect } = chai;
+
 // Sinon is a library used for mocking or verifying function calls in JavaScript.
 const sinon = require('sinon');
 // For not exported functions
@@ -19,7 +19,7 @@ const functionsTest = firebaseTest({
   projectId: 'accountability-sms-bot-test',
 }, './accountability-sms-bot-test-firebase-adminsdk-bepel-ab6b2ae9f4.json');
 // const functionsTest = firebaseTest(
-//   myEnv.firebaseConfig, 
+//   myEnv.firebaseConfig,
 //   './accountability-sms-bot-test-firebase-adminsdk-bepel-ab6b2ae9f4.json'
 // );
 
@@ -33,7 +33,7 @@ const functionsTest = firebaseTest({
   const env = functions.config();
 */
 // So we can Mock functions config values
-functionsTest.mockConfig({ twilio: { mynumber: '+11234567890' }});
+functionsTest.mockConfig({ twilio: { mynumber: '+11234567890' } });
 // functionsTest.mockConfig(myEnv); // Should I use the actual keys?
 
 // // ----- If in offline mode, stub admin.initializeApp(); -----
@@ -69,7 +69,7 @@ describe('Firebase Functions', () => {
     index.deleteUserDocument('testnumber3');
     index.deleteUserDocument('testnumber4');
     index.deleteUserDocument('testnumber5');
-    
+
     // Do cleanup tasks.
     await functionsTest.cleanup();
   });
@@ -80,13 +80,13 @@ describe('Firebase Functions', () => {
       const req = {};
       const res = {
         send: (testResponse: any) => {
-        //Run the test in response callback of the HTTPS function
-        expect(testResponse).to.be.equal("Hello from Firebase!");
-        //done() is to be triggered to finish the function
-        done();
-        }
+        // Run the test in response callback of the HTTPS function
+          expect(testResponse).to.be.equal('Hello from Firebase!');
+          // done() is to be triggered to finish the function
+          done();
+        },
       };
-      await index.helloWorld(req,res);
+      await index.helloWorld(req, res);
     });
   });
 
@@ -94,10 +94,10 @@ describe('Firebase Functions', () => {
     it('should return status 200', async () => {
       // A fake request object, with req.query.text set to 'input'
       const req = {
-          body: {
-            Body: 'test body',
-            From: '+11234567890'
-          }
+        body: {
+          Body: 'test body',
+          From: '+11234567890',
+        },
       };
       // A fake response object, with a stubbed send function which asserts that it is called
       const res = {
@@ -105,33 +105,33 @@ describe('Firebase Functions', () => {
         status: (statusCode: number) => {
           expect(statusCode).to.be.equal(200);
         },
-        send: (testResponse: any) => {}
+        send: (testResponse: any) => {},
       };
       // Invoke handleIncomingMessage with our fake request and response objects. This will cause the
       // assertions in the response object to be evaluated.
       await index.handleIncomingMessage(req, res);
     });
     it('should return new user response', async () => {
-      const req = { body: { Body: 'test body', From: '+11234567891'}};
+      const req = { body: { Body: 'test body', From: '+11234567891' } };
       const res = {
         set: () => {},
         status: (statusCode: number) => {},
         send: (testResponse: any) => {
-          //Run the test in response callback of the HTTPS function
+          // Run the test in response callback of the HTTPS function
           expect(testResponse).to.be.equal('<?xml version="1.0" encoding="UTF-8"?><Response><Message>\nWelcome to the Accountability Bot!\nTo see a list of commands, text "help commands"</Message></Response>');
-        }
+        },
       };
       await index.handleIncomingMessage(req, res);
     });
     it('should return existing user response', async () => {
-      const req = { body: { Body: 'test body', From: '+11234567891'}};
+      const req = { body: { Body: 'test body', From: '+11234567891' } };
       const res = {
         set: () => {},
         status: (statusCode: number) => {},
         send: (testResponse: any) => {
-          //Run the test in response callback of the HTTPS function
+          // Run the test in response callback of the HTTPS function
           expect(testResponse).to.be.equal('<?xml version="1.0" encoding="UTF-8"?><Response><Message>\nWelcome back!\ntest body</Message></Response>');
-        }
+        },
       };
       await index.handleIncomingMessage(req, res);
     });
@@ -181,7 +181,7 @@ describe('Firebase Functions', () => {
     });
     it('should create user in firestore', async () => {
       const incomingPhoneNumber = 'testnumber5';
-      await createNewUser(incomingPhoneNumber)
+      await createNewUser(incomingPhoneNumber);
       const newDocument: admin.firestore.DocumentSnapshot = await db.collection('users').doc(incomingPhoneNumber).get();
       const newDocumentId = newDocument.id;
       return assert.equal(newDocumentId, incomingPhoneNumber);

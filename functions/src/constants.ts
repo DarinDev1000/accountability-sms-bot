@@ -15,8 +15,8 @@ You can also look at detailed help for a command:
     helpAddContact: '"add contact <phone number>"  -  add a contact',
     helpRemoveContact: '"remove contact <phone number>"  -  remove a contact',
     helpChangeName: '"name <your name>"  -  your first name for your contacts to see',
-    helpReportNumber: '"report <number>"  -  how did you do since your last report? (number 1-10)\nOr just send the value only (Ex. "10") and that will report it!'
-  }
+    helpReportNumber: '"report <number>"  -  how did you do since your last report? (number 1-10)\nOr just send the value only (Ex. "10") and that will report it!',
+  },
 };
 
 export default constants;
