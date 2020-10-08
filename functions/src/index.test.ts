@@ -1,7 +1,7 @@
 // ----- My Imports -----
 import { myEnv } from './env';
 import constants from './constants';
-// import * as admin from 'firebase-admin';
+import * as admin from 'firebase-admin';
 // Chai is a commonly used library for creating unit test suites. It is easily extended with plugins.
 const chai = require('chai');
 const assert = chai.assert;
@@ -52,16 +52,15 @@ const index = rewire('./index'); // This allow me to not have to export function
 
 
 describe('Firebase Functions', () => {
+  let db: any;
 
   before(() => {
     // Stuff to run before
-    // const db = admin.firestore();
+    db = admin.firestore();
   });
 
   after(async () => {
-    // Do cleanup tasks.
-    await functionsTest.cleanup();
-    // Reset the database. // don't accidentally delete the prod database
+    // Reset the database. - don't accidentally delete the prod database
     index.deleteUserDocument('11234567890');
     index.deleteUserDocument('11234567891');
     // index.deleteUserDocument('testnumber');
@@ -69,6 +68,10 @@ describe('Firebase Functions', () => {
     index.deleteUserDocument('testnumber2');
     index.deleteUserDocument('testnumber3');
     index.deleteUserDocument('testnumber4');
+    index.deleteUserDocument('testnumber5');
+    
+    // Do cleanup tasks.
+    await functionsTest.cleanup();
   });
 
   describe('helloWorld', () => {
@@ -175,6 +178,13 @@ describe('Firebase Functions', () => {
     xit('should not overwrite existing user', async () => {
       await createNewUser('testnumber4');
       return assert.notProperty(await createNewUser('testnumber4'), 'writeTime');
+    });
+    it('should create user in firestore', async () => {
+      const incomingPhoneNumber = 'testnumber5';
+      await createNewUser(incomingPhoneNumber)
+      const newDocument: admin.firestore.DocumentSnapshot = await db.collection('users').doc(incomingPhoneNumber).get();
+      const newDocumentId = newDocument.id;
+      return assert.equal(newDocumentId, incomingPhoneNumber);
     });
   });
 

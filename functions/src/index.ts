@@ -169,7 +169,7 @@ const helpCommand = async (incomingBodyLowercase: string): Promise<string> => {
 
 const listContactsCommand = async (incomingPhoneNumber: string): Promise<string> => {
   let contactString = 'Here is your contacts:';
-  // Create a reference to the cities collection
+  // Create a reference to the user collection
   const userDocument: admin.firestore.DocumentSnapshot = await db.collection('users').doc(incomingPhoneNumber).get();
   const contactList = await userDocument.get('contacts');
   await contactList.forEach((contactNumber: string) => {
