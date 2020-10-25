@@ -102,6 +102,8 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
     // If existing user, check commands
     responseMessage = `Welcome back!\n${incomingBody}`; // Default If no command is matched
 
+    // use Promise.all for command checks?
+
     // Handle Commands
     if (incomingBodyLowercase.includes('help')) {
       functions.logger.info('command: help');
@@ -316,7 +318,7 @@ const checkIfNewUser = async (incomingPhoneNumber: string): Promise<boolean> => 
   // Default Existing User
   let isNewUser = false;
 
-  // Create a reference to the cities collection
+  // Create a reference to the users collection
   const usersRef: admin.firestore.CollectionReference = db.collection('users');
 
   // Create a query against the collection
