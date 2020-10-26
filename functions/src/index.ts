@@ -74,10 +74,11 @@ export const helloWorld = functions.https.onRequest((request, response) => {
 /**
  * Sends a daily text message to ask for report
  * Feature to add: Only send if not reported for today
+ * For now, this will always be America/Los_Angeles time zone
  */
-exports.scheduledFunctionCrontab = functions.pubsub.schedule('00 9 * * *') // 'min hr daymonth month dayweek'
+export const scheduledDailyReminderSMS = functions.pubsub.schedule('10 * * * *') // 'min hr daymonth month dayweek'
   .timeZone('America/Los_Angeles') // Users can choose timezone - default is America/Los_Angeles
-  .onRun((context) => {
+  .onRun(async (context) => {
     functions.logger.info('twilio scheduled daily reminder sms', { structuredData: true });
 
     const accountSid = env.twilio.accountsid; // Your Account SID from www.twilio.com/console
@@ -86,17 +87,32 @@ exports.scheduledFunctionCrontab = functions.pubsub.schedule('00 9 * * *') // 'm
     const client = new Twilio(accountSid, authToken);
 
     // Numbers to sms
-    // const numbers = [env.twilio.dnumber]; // env.twilio.jnumber
-    const numbers = [env.twilio.dnumber, env.twilio.jnumber]; // env.twilio.jnumber
+    const numbers = [env.twilio.dnumber];
+    // const numbers = [env.twilio.dnumber, env.twilio.jnumber];
 
-    Promise.all<string>(
-      numbers.map((number): string => client.messages.create({
-        to: number, // Text this number
-        // from: process.env.TWILIO_MESSAGING_SERVICE_SID, // This may be a way to auto send from the number
-        from: env.twilio.twilionumber, // From a valid Twilio number
-        body: "How did you do since your last report?\n\n(Let me know if you get this. I'm testing a scheduled reminder)",
-      })),
-    ).then((message: any) => console.log(message.sid));
+    // Promise.all<string>(
+    //   numbers.map((number): string => client.messages.create({
+    //     to: number, // Text this number
+    //     // from: process.env.TWILIO_MESSAGING_SERVICE_SID, // This may be a way to auto send from the number
+    //     from: env.twilio.twilionumber, // From a valid Twilio number
+    //     body: "How did you do since your last report?\n\n(Let me know if you get this. I'm testing a scheduled reminder)",
+    //   })),
+    // ).then((message: any) => console.log(message.sid));
+
+    try {
+      const message: any = await Promise.all(
+        numbers.map((number): string => client.messages.create({
+          to: number, // Text this number
+          // from: process.env.TWILIO_MESSAGING_SERVICE_SID, // This may be a way to auto send from the number
+          from: env.twilio.twilionumber, // From a valid Twilio number
+          body: "How did you do since your last report?\n(Should be a number 1-10)\n\n(Let me know if you get this. I'm testing a scheduled reminder)",
+        })),
+      );
+      console.log(message.sid);
+      functions.logger.debug(message.sid);
+    } catch (error) {
+      console.error(error);
+    }
 
     return null;
   });
