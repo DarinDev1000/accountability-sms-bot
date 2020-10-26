@@ -33,6 +33,7 @@ const functionsTest = firebaseTest({
   const env = functions.config();
 */
 // So we can Mock functions config values
+// const env = functionsTest.mockConfig({ twilio: { mynumber: '+11234567890' } }); // does this work?
 functionsTest.mockConfig({ twilio: { mynumber: '+11234567890' } });
 // functionsTest.mockConfig(myEnv); // Should I use the actual keys?
 
@@ -87,6 +88,31 @@ describe('Firebase Functions', () => {
         },
       };
       await index.helloWorld(req, res);
+    });
+  });
+  describe('scheduledDailyReminderSMS', () => {
+    xit('should be', async (done) => {
+      // "Wrap" the makeUpperCase function from index.js
+      const wrapped = await functionsTest.wrap(index.scheduledDailyReminderSMS);
+      // const wrapped = await functionsTest.pubsub.makeMessage(index.scheduledDailyReminderSMS);
+
+      const ctx = {};
+
+      // Invoke the wrapped function without specifying the event context.
+      const data = await wrapped(ctx);
+      // wrapped(ctx);
+
+      // // Invoke the function, and specify all the fields that can be specified
+      // wrapped(data, {
+      //   eventId: 'abc',
+      //   timestamp: '2018-03-23T17:27:17.099Z',
+      //   params: {
+      //     pushId: '234234'
+      //   }
+      // });
+
+      expect(data).to.be(null);
+      // done();
     });
   });
 
