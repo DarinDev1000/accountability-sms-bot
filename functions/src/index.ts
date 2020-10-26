@@ -179,6 +179,7 @@ const helpCommand = async (incomingBodyLowercase: string): Promise<string> => {
  * Return a list of contacts for the user
  * @param {string} incomingPhoneNumber - The incoming user number
  */
+// async function listContactsCommand(incomingPhoneNumber: string): Promise<string> {
 const listContactsCommand = async (incomingPhoneNumber: string): Promise<string> => {
   let contactString = 'Here is your contacts:';
   // Create a reference to the user collection
