@@ -39,7 +39,7 @@ export const helloWorld = functions.https.onRequest((request, response) => {
 //   client.messages
 //     .create({
 //       body: "Hello from Node",
-//       to: env.twilio.mynumber, // Text this number
+//       to: env.twilio.dnumber, // Text this number
 //       from: env.twilio.twilionumber // From a valid Twilio number
 //     })
 //     .then((message: any) => console.log(message.sid));
@@ -75,7 +75,7 @@ export const helloWorld = functions.https.onRequest((request, response) => {
  * Sends a daily text message to ask for report
  * Feature to add: Only send if not reported for today
  */
-exports.scheduledFunctionCrontab = functions.pubsub.schedule('30 0 * * *') // 'min hr daymonth month dayweek'
+exports.scheduledFunctionCrontab = functions.pubsub.schedule('40 0 * * *') // 'min hr daymonth month dayweek'
   .timeZone('America/Los_Angeles') // Users can choose timezone - default is America/Los_Angeles
   .onRun((context) => {
     functions.logger.info('twilioTrial', { structuredData: true });
@@ -86,7 +86,7 @@ exports.scheduledFunctionCrontab = functions.pubsub.schedule('30 0 * * *') // 'm
     const client = new Twilio(accountSid, authToken);
 
     // Numbers to sms
-    const numbers = [env.twilio.mynumber]; // env.twilio.jnumber
+    const numbers = [env.twilio.dnumber]; // env.twilio.jnumber
 
     Promise.all<string>(
       numbers.map((number): string => client.messages.create({
@@ -472,7 +472,7 @@ export const deleteUserDocument = async (documentId: string): Promise<object> =>
 };
 
 // Add my phone number for testing purposes and existing user
-// const addMe = createNewUser(standardizePhoneNumber(env.twilio.mynumber), [standardizePhoneNumber('11234567890'), standardizePhoneNumber('01234567890')]);
+// const addMe = createNewUser(standardizePhoneNumber(env.twilio.dnumber), [standardizePhoneNumber('11234567890'), standardizePhoneNumber('01234567890')]);
 
 /* firebase firestore users collection example:
   users: {                          // (collection)
