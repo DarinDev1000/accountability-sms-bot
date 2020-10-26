@@ -75,7 +75,7 @@ export const helloWorld = functions.https.onRequest((request, response) => {
  * Sends a daily text message to ask for report
  * Feature to add: Only send if not reported for today
  */
-exports.scheduledFunctionCrontab = functions.pubsub.schedule('58 18 * * *')
+exports.scheduledFunctionCrontab = functions.pubsub.schedule('30 0 * * *') // 'min hr daymonth month dayweek'
   .timeZone('America/Los_Angeles') // Users can choose timezone - default is America/Los_Angeles
   .onRun((context) => {
     functions.logger.info('twilioTrial', { structuredData: true });
@@ -85,13 +85,17 @@ exports.scheduledFunctionCrontab = functions.pubsub.schedule('58 18 * * *')
 
     const client = new Twilio(accountSid, authToken);
 
-    client.messages
-      .create({
-        body: 'This is a scheduled function',
-        to: env.twilio.mynumber, // Text this number
+    // Numbers to sms
+    const numbers = [env.twilio.mynumber]; // env.twilio.jnumber
+
+    Promise.all<string>(
+      numbers.map((number): string => client.messages.create({
+        to: number, // Text this number
+        // from: process.env.TWILIO_MESSAGING_SERVICE_SID, // This may be a way to auto send from the number
         from: env.twilio.twilionumber, // From a valid Twilio number
-      })
-      .then((message: any) => console.log(message.sid));
+        body: 'How did you do since your last report?',
+      })),
+    ).then((message: any) => console.log(message.sid));
 
     return null;
   });
