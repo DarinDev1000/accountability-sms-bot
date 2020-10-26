@@ -72,6 +72,17 @@ export const helloWorld = functions.https.onRequest((request, response) => {
 // });
 
 /**
+ * Sends a daily text message to report
+ * Feature to add: 
+ */
+exports.scheduledFunctionCrontab = functions.pubsub.schedule('40 18 * * *')
+  .timeZone('America/Los_Angeles') // Users can choose timezone - default is America/Los_Angeles
+  .onRun((context) => {
+  console.log('This will be run every day at 7:00 PM Pacific!');
+  return null;
+});
+
+/**
  * Handles incoming messages
  * @param {Request} request - The request object
  * @param {Response} response - The response object
