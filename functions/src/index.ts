@@ -75,10 +75,10 @@ export const helloWorld = functions.https.onRequest((request, response) => {
  * Sends a daily text message to ask for report
  * Feature to add: Only send if not reported for today
  */
-exports.scheduledFunctionCrontab = functions.pubsub.schedule('40 0 * * *') // 'min hr daymonth month dayweek'
+exports.scheduledFunctionCrontab = functions.pubsub.schedule('00 9 * * *') // 'min hr daymonth month dayweek'
   .timeZone('America/Los_Angeles') // Users can choose timezone - default is America/Los_Angeles
   .onRun((context) => {
-    functions.logger.info('twilioTrial', { structuredData: true });
+    functions.logger.info('twilio scheduled daily reminder sms', { structuredData: true });
 
     const accountSid = env.twilio.accountsid; // Your Account SID from www.twilio.com/console
     const authToken = env.twilio.authtoken; // Your Auth Token from www.twilio.com/console
@@ -86,14 +86,15 @@ exports.scheduledFunctionCrontab = functions.pubsub.schedule('40 0 * * *') // 'm
     const client = new Twilio(accountSid, authToken);
 
     // Numbers to sms
-    const numbers = [env.twilio.dnumber]; // env.twilio.jnumber
+    // const numbers = [env.twilio.dnumber]; // env.twilio.jnumber
+    const numbers = [env.twilio.dnumber, env.twilio.jnumber]; // env.twilio.jnumber
 
     Promise.all<string>(
       numbers.map((number): string => client.messages.create({
         to: number, // Text this number
         // from: process.env.TWILIO_MESSAGING_SERVICE_SID, // This may be a way to auto send from the number
         from: env.twilio.twilionumber, // From a valid Twilio number
-        body: 'How did you do since your last report?',
+        body: "How did you do since your last report?\n\n(Let me know if you get this. I'm testing a scheduled reminder)",
       })),
     ).then((message: any) => console.log(message.sid));
 
