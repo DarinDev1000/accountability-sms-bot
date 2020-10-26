@@ -2,6 +2,7 @@
   "name": "functions",
   "scripts": {
     "lint": "eslint 'src/index.ts'",
+    "lintfix": "eslint 'src/index.ts' --fix",
     "build": "tsc",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",

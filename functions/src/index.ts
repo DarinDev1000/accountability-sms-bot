@@ -4,7 +4,7 @@ import MessagingResponseType = require('twilio/lib/twiml/MessagingResponse');
 import constants from './constants';
 
 const { MessagingResponse } = require('twilio').twiml;
-const twilio = require('twilio');
+const Twilio = require('twilio');
 
 const env = functions.config();
 
@@ -72,13 +72,27 @@ export const helloWorld = functions.https.onRequest((request, response) => {
 // });
 
 /**
- * Sends a daily text message to report
- * Feature to add:
+ * Sends a daily text message to ask for report
+ * Feature to add: Only send if not reported for today
  */
-exports.scheduledFunctionCrontab = functions.pubsub.schedule('40 18 * * *')
+exports.scheduledFunctionCrontab = functions.pubsub.schedule('58 18 * * *')
   .timeZone('America/Los_Angeles') // Users can choose timezone - default is America/Los_Angeles
   .onRun((context) => {
-    console.log('This will be run every day at 7:00 PM Pacific!');
+    functions.logger.info('twilioTrial', { structuredData: true });
+
+    const accountSid = env.twilio.accountsid; // Your Account SID from www.twilio.com/console
+    const authToken = env.twilio.authtoken; // Your Auth Token from www.twilio.com/console
+
+    const client = new Twilio(accountSid, authToken);
+
+    client.messages
+      .create({
+        body: 'This is a scheduled function',
+        to: env.twilio.mynumber, // Text this number
+        from: env.twilio.twilionumber, // From a valid Twilio number
+      })
+      .then((message: any) => console.log(message.sid));
+
     return null;
   });
 
