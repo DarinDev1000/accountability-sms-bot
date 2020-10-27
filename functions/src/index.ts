@@ -106,7 +106,7 @@ export const scheduledDailyReminderSMS = functions.pubsub.schedule('00 7 * * *')
           to: number, // Text this number
           // from: process.env.TWILIO_MESSAGING_SERVICE_SID, // This may be a way to auto send from the number
           from: env.twilio.twilionumber, // From a valid Twilio number
-          body: "How did you do since your last report?\n(Should be a number 1-10)\n\n(Let me know if you get this. I'm testing a scheduled reminder)",
+          body: "How did you do since your last report?\n(Should be a number 1-10)",
         })),
       );
       console.log(message.sid);
