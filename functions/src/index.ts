@@ -196,9 +196,9 @@ export const handleIncomingMessage = functions.https.onRequest(async (request, r
   response.send(twiml.toString());
 });
 
-//History Command
-//Get the Command, history
-//Get the last 7 days
+// History Command
+// Get the Command, history
+// Get the last 7 days
 //
 
 
