@@ -39,7 +39,7 @@ export const helloWorld = functions.https.onRequest((request, response) => {
 //   client.messages
 //     .create({
 //       body: "Hello from Node",
-//       to: env.twilio.mynumber, // Text this number
+//       to: env.twilio.dnumber, // Text this number
 //       from: env.twilio.twilionumber // From a valid Twilio number
 //     })
 //     .then((message: any) => console.log(message.sid));
@@ -74,24 +74,46 @@ export const helloWorld = functions.https.onRequest((request, response) => {
 /**
  * Sends a daily text message to ask for report
  * Feature to add: Only send if not reported for today
+ * For now, this will always be America/Los_Angeles time zone
  */
-exports.scheduledFunctionCrontab = functions.pubsub.schedule('58 18 * * *')
+// export const scheduledDailyReminderSMS = functions.pubsub.schedule('10 * * * *') // 'min hr daymonth month dayweek'
+export const scheduledDailyReminderSMS = functions.pubsub.schedule('00 7 * * *') // 'min hr daymonth month dayweek'
   .timeZone('America/Los_Angeles') // Users can choose timezone - default is America/Los_Angeles
-  .onRun((context) => {
-    functions.logger.info('twilioTrial', { structuredData: true });
+  .onRun(async (context) => {
+    functions.logger.info('twilio scheduled daily reminder sms', { structuredData: true });
 
     const accountSid = env.twilio.accountsid; // Your Account SID from www.twilio.com/console
     const authToken = env.twilio.authtoken; // Your Auth Token from www.twilio.com/console
 
     const client = new Twilio(accountSid, authToken);
 
-    client.messages
-      .create({
-        body: 'This is a scheduled function',
-        to: env.twilio.mynumber, // Text this number
-        from: env.twilio.twilionumber, // From a valid Twilio number
-      })
-      .then((message: any) => console.log(message.sid));
+    // Numbers to sms
+    const numbers = [env.twilio.dnumber];
+    // const numbers = [env.twilio.dnumber, env.twilio.jnumber];
+
+    // Promise.all<string>(
+    //   numbers.map((number): string => client.messages.create({
+    //     to: number, // Text this number
+    //     // from: process.env.TWILIO_MESSAGING_SERVICE_SID, // This may be a way to auto send from the number
+    //     from: env.twilio.twilionumber, // From a valid Twilio number
+    //     body: "How did you do since your last report?\n\n(Let me know if you get this. I'm testing a scheduled reminder)",
+    //   })),
+    // ).then((message: any) => console.log(message.sid));
+
+    try {
+      const message: any = await Promise.all(
+        numbers.map((number): string => client.messages.create({
+          to: number, // Text this number
+          // from: process.env.TWILIO_MESSAGING_SERVICE_SID, // This may be a way to auto send from the number
+          from: env.twilio.twilionumber, // From a valid Twilio number
+          body: "How did you do since your last report?\n(Should be a number 1-10)",
+        })),
+      );
+      console.log(message.sid);
+      functions.logger.debug(message.sid);
+    } catch (error) {
+      console.error(error);
+    }
 
     return null;
   });
@@ -468,7 +490,7 @@ export const deleteUserDocument = async (documentId: string): Promise<object> =>
 };
 
 // Add my phone number for testing purposes and existing user
-// const addMe = createNewUser(standardizePhoneNumber(env.twilio.mynumber), [standardizePhoneNumber('11234567890'), standardizePhoneNumber('01234567890')]);
+// const addMe = createNewUser(standardizePhoneNumber(env.twilio.dnumber), [standardizePhoneNumber('11234567890'), standardizePhoneNumber('01234567890')]);
 
 /* firebase firestore users collection example:
   users: {                          // (collection)

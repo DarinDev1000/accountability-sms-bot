@@ -4,5 +4,7 @@
     "authtoken": "",
     "twilionumber": "",
     "mynumber": "",
+    "dnumber": "",
+    "jnumber": "",
   },
 }
