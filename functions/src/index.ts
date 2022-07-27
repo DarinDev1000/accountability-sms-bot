@@ -78,6 +78,7 @@ export const helloWorld = functions.https.onRequest((request, response) => {
  */
 // export const scheduledDailyReminderSMS = functions.pubsub.schedule('10 * * * *') // 'min hr daymonth month dayweek'
 export const scheduledDailyReminderSMS = functions.pubsub.schedule('00 7 * * *') // 'min hr daymonth month dayweek'
+// export const scheduledDailyReminderSMS = functions.pubsub.schedule('* * * * *') // 'min hr daymonth month dayweek'
   .timeZone('America/Los_Angeles') // Users can choose timezone - default is America/Los_Angeles
   .onRun(async (context) => {
     functions.logger.info('twilio scheduled daily reminder sms', { structuredData: true });
